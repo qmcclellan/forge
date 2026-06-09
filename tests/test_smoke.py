@@ -1,3 +1,5 @@
+import subprocess
+
 from forge.cli import build_parser, create_project
 
 
@@ -30,3 +32,34 @@ def test_create_project(tmp_path):
     assert "A small worker project." in readme
     assert 'name = "hello-worker"' in pyproject
     assert "hello-worker is running." in main_py
+
+
+def test_create_project_with_git_init(tmp_path):
+    target = create_project(
+        name="git-worker",
+        template="python-worker",
+        output_dir=str(tmp_path),
+        description="A worker with Git initialized.",
+        git_init=True,
+    )
+
+    assert (target / ".git").exists()
+
+    branch = subprocess.run(
+        ["git", "branch", "--show-current"],
+        cwd=target,
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+    ).stdout.strip()
+
+    log = subprocess.run(
+        ["git", "log", "--oneline", "-1"],
+        cwd=target,
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+    ).stdout.strip()
+
+    assert branch == "main"
+    assert "Initial scaffold from Forge" in log

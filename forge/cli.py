@@ -2,6 +2,7 @@ import argparse
 import re
 from pathlib import Path
 
+from forge.git_ops import run_git_init
 from forge.renderer import render_template_dir
 
 
@@ -43,11 +44,22 @@ def build_parser() -> argparse.ArgumentParser:
         default="A generated Forge project.",
         help="Project description.",
     )
+    new_parser.add_argument(
+        "--git-init",
+        action="store_true",
+        help="Initialize Git and create the first commit in the generated project.",
+    )
 
     return parser
 
 
-def create_project(name: str, template: str, output_dir: str, description: str = "A generated Forge project.") -> Path:
+def create_project(
+    name: str,
+    template: str,
+    output_dir: str,
+    description: str = "A generated Forge project.",
+    git_init: bool = False,
+) -> Path:
     project_slug = slugify(name)
     package_name = package_name_from_slug(project_slug)
 
@@ -72,6 +84,9 @@ def create_project(name: str, template: str, output_dir: str, description: str =
     target.mkdir(parents=True)
     render_template_dir(template_dir, target, values)
 
+    if git_init:
+        run_git_init(target)
+
     return target
 
 
@@ -85,6 +100,7 @@ def main() -> None:
             template=args.template,
             output_dir=args.output_dir,
             description=args.description,
+            git_init=args.git_init,
         )
         print(f"Created project: {target}")
         return
