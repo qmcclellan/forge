@@ -103,3 +103,41 @@ def test_create_project_with_git_init(tmp_path):
 
     assert branch == "main"
     assert "Initial scaffold from Forge" in log
+
+
+def test_create_project_with_remote_url_requires_git_init(tmp_path):
+    try:
+        create_project(
+            name="remote-worker",
+            template="python-worker",
+            output_dir=str(tmp_path),
+            description="A worker with a remote URL.",
+            remote_url="ssh://git@192.168.1.107:2222/portfolio/remote-worker.git",
+        )
+    except ValueError as error:
+        assert "--remote-url requires --git-init" in str(error)
+    else:
+        raise AssertionError("Expected ValueError")
+
+
+def test_create_project_with_remote_url(tmp_path):
+    remote_url = "ssh://git@192.168.1.107:2222/portfolio/remote-worker.git"
+
+    target = create_project(
+        name="remote-worker",
+        template="python-worker",
+        output_dir=str(tmp_path),
+        description="A worker with a remote URL.",
+        git_init=True,
+        remote_url=remote_url,
+    )
+
+    configured_remote = subprocess.run(
+        ["git", "remote", "get-url", "origin"],
+        cwd=target,
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+    ).stdout.strip()
+
+    assert configured_remote == remote_url

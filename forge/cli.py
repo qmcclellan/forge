@@ -2,7 +2,7 @@ import argparse
 import re
 from pathlib import Path
 
-from forge.git_ops import run_git_init
+from forge.git_ops import add_remote_origin, run_git_init
 from forge.renderer import render_template_dir
 
 
@@ -59,6 +59,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Include a Jenkinsfile in the generated project.",
     )
+    new_parser.add_argument(
+        "--remote-url",
+        default=None,
+        help="Set the generated Git repository origin remote URL. Requires --git-init.",
+    )
 
     return parser
 
@@ -71,6 +76,7 @@ def create_project(
     git_init: bool = False,
     with_docker: bool = False,
     with_jenkins: bool = False,
+    remote_url: str | None = None,
 ) -> Path:
     project_slug = slugify(name)
     package_name = package_name_from_slug(project_slug)
@@ -107,8 +113,14 @@ def create_project(
         enabled_optional_files=optional_files,
     )
 
+    if remote_url and not git_init:
+        raise ValueError("--remote-url requires --git-init")
+
     if git_init:
         run_git_init(target)
+
+    if remote_url:
+        add_remote_origin(target, remote_url)
 
     return target
 
@@ -126,6 +138,7 @@ def main() -> None:
             git_init=args.git_init,
             with_docker=args.with_docker,
             with_jenkins=args.with_jenkins,
+            remote_url=args.remote_url,
         )
         print(f"Created project: {target}")
         return
