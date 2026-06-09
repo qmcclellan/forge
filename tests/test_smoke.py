@@ -26,6 +26,7 @@ def test_create_project(tmp_path):
     assert (target / "docs" / "interview-talk-track.md").exists()
     assert not (target / "Dockerfile").exists()
     assert not (target / "docker-compose.yml").exists()
+    assert not (target / "Jenkinsfile").exists()
 
     readme = (target / "README.md").read_text()
     pyproject = (target / "pyproject.toml").read_text()
@@ -54,6 +55,23 @@ def test_create_project_with_docker(tmp_path):
     assert "FROM python:3.12-slim" in dockerfile
     assert "docker-worker" in compose
     assert "src.docker_worker.main" in compose
+
+def test_create_project_with_jenkins(tmp_path):
+    target = create_project(
+        name="jenkins-worker",
+        template="python-worker",
+        output_dir=str(tmp_path),
+        description="A Jenkins-ready worker project.",
+        with_jenkins=True,
+    )
+
+    assert (target / "Jenkinsfile").exists()
+
+    jenkinsfile = (target / "Jenkinsfile").read_text()
+
+    assert "pipeline" in jenkinsfile
+    assert "python -m pytest" in jenkinsfile
+    assert "jenkins-worker" in jenkinsfile
 
 
 def test_create_project_with_git_init(tmp_path):

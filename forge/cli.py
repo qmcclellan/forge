@@ -54,6 +54,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Include Dockerfile and docker-compose.yml in the generated project.",
     )
+    new_parser.add_argument(
+        "--with-jenkins",
+        action="store_true",
+        help="Include a Jenkinsfile in the generated project.",
+    )
 
     return parser
 
@@ -65,6 +70,7 @@ def create_project(
     description: str = "A generated Forge project.",
     git_init: bool = False,
     with_docker: bool = False,
+    with_jenkins: bool = False,
 ) -> Path:
     project_slug = slugify(name)
     package_name = package_name_from_slug(project_slug)
@@ -90,6 +96,8 @@ def create_project(
     optional_files: set[str] = set()
     if with_docker:
         optional_files.update({"Dockerfile.tmpl", "docker-compose.yml.tmpl"})
+    if with_jenkins:
+        optional_files.add("Jenkinsfile.tmpl")
 
     target.mkdir(parents=True)
     render_template_dir(
@@ -117,6 +125,7 @@ def main() -> None:
             description=args.description,
             git_init=args.git_init,
             with_docker=args.with_docker,
+            with_jenkins=args.with_jenkins,
         )
         print(f"Created project: {target}")
         return

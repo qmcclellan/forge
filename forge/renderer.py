@@ -19,7 +19,7 @@ def render_template_dir(
     for source in template_dir.rglob("*"):
         relative = source.relative_to(template_dir)
 
-        if source.is_file() and relative.name in {"Dockerfile.tmpl", "docker-compose.yml.tmpl"}:
+        if source.is_file() and relative.name in {"Dockerfile.tmpl", "docker-compose.yml.tmpl", "Jenkinsfile.tmpl"}:
             if relative.name not in enabled_optional_files:
                 continue
 
