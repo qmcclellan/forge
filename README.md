@@ -32,16 +32,18 @@ Forge is intended for portfolio projects, internal tooling, and future Friday/Co
 - `--git-init`
 - `--with-docker`
 - `--with-jenkins`
+- `--remote-url`
 
 ## Example
 
     python3 -m forge.cli new "sre-log-pipeline" \
-      --template python-worker \
-      --output-dir /srv/workspaces/projects/portfolio \
-      --description "A small SRE-style log ingestion pipeline." \
-      --with-docker \
-      --with-jenkins \
-      --git-init
+  --template python-worker \
+  --output-dir /srv/workspaces/projects/portfolio \
+  --description "A small SRE-style log ingestion pipeline." \
+  --with-docker \
+  --with-jenkins \
+  --git-init \
+  --remote-url ssh://git@192.168.1.107:2222/portfolio/sre-log-pipeline.git
 
 ## Local Setup
 
