@@ -8,9 +8,20 @@ def render_text(template: str, values: dict[str, str]) -> str:
     return rendered
 
 
-def render_template_dir(template_dir: Path, target_dir: Path, values: dict[str, str]) -> None:
+def render_template_dir(
+    template_dir: Path,
+    target_dir: Path,
+    values: dict[str, str],
+    enabled_optional_files: set[str] | None = None,
+) -> None:
+    enabled_optional_files = enabled_optional_files or set()
+
     for source in template_dir.rglob("*"):
         relative = source.relative_to(template_dir)
+
+        if source.is_file() and relative.name in {"Dockerfile.tmpl", "docker-compose.yml.tmpl"}:
+            if relative.name not in enabled_optional_files:
+                continue
 
         parts = [
             values.get("package_name", part) if part == "__package__" else part

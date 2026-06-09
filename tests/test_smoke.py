@@ -24,6 +24,8 @@ def test_create_project(tmp_path):
     assert (target / "tests" / "test_smoke.py").exists()
     assert (target / "docs" / "runbook.md").exists()
     assert (target / "docs" / "interview-talk-track.md").exists()
+    assert not (target / "Dockerfile").exists()
+    assert not (target / "docker-compose.yml").exists()
 
     readme = (target / "README.md").read_text()
     pyproject = (target / "pyproject.toml").read_text()
@@ -32,6 +34,26 @@ def test_create_project(tmp_path):
     assert "A small worker project." in readme
     assert 'name = "hello-worker"' in pyproject
     assert "hello-worker is running." in main_py
+
+
+def test_create_project_with_docker(tmp_path):
+    target = create_project(
+        name="docker-worker",
+        template="python-worker",
+        output_dir=str(tmp_path),
+        description="A Docker-ready worker project.",
+        with_docker=True,
+    )
+
+    assert (target / "Dockerfile").exists()
+    assert (target / "docker-compose.yml").exists()
+
+    dockerfile = (target / "Dockerfile").read_text()
+    compose = (target / "docker-compose.yml").read_text()
+
+    assert "FROM python:3.12-slim" in dockerfile
+    assert "docker-worker" in compose
+    assert "src.docker_worker.main" in compose
 
 
 def test_create_project_with_git_init(tmp_path):

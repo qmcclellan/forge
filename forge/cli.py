@@ -49,6 +49,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Initialize Git and create the first commit in the generated project.",
     )
+    new_parser.add_argument(
+        "--with-docker",
+        action="store_true",
+        help="Include Dockerfile and docker-compose.yml in the generated project.",
+    )
 
     return parser
 
@@ -59,6 +64,7 @@ def create_project(
     output_dir: str,
     description: str = "A generated Forge project.",
     git_init: bool = False,
+    with_docker: bool = False,
 ) -> Path:
     project_slug = slugify(name)
     package_name = package_name_from_slug(project_slug)
@@ -81,8 +87,17 @@ def create_project(
         "description": description,
     }
 
+    optional_files: set[str] = set()
+    if with_docker:
+        optional_files.update({"Dockerfile.tmpl", "docker-compose.yml.tmpl"})
+
     target.mkdir(parents=True)
-    render_template_dir(template_dir, target, values)
+    render_template_dir(
+        template_dir=template_dir,
+        target_dir=target,
+        values=values,
+        enabled_optional_files=optional_files,
+    )
 
     if git_init:
         run_git_init(target)
@@ -101,6 +116,7 @@ def main() -> None:
             output_dir=args.output_dir,
             description=args.description,
             git_init=args.git_init,
+            with_docker=args.with_docker,
         )
         print(f"Created project: {target}")
         return
