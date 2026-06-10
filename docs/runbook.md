@@ -14,7 +14,7 @@ Run:
     python3 -m venv .venv
     source .venv/bin/activate
     python -m pip install --upgrade pip
-    python -m pip install pytest
+    python -m pip install -e ".[dev]"
 
 ## Run Tests
 
@@ -48,7 +48,7 @@ Expected files:
 Optional generated project package smoke test:
 
     cd /tmp/forge-test/hello-worker
-    python -m pip install -e . pytest
+    python -m pip install -e ".[dev]"
     python -m pytest
     python -m hello_worker.main
 

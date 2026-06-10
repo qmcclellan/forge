@@ -90,7 +90,7 @@ Forge can now create a new Python worker project that is test-ready, doc-ready, 
       --git-init
 
     cd /tmp/forge-demo/sre-log-pipeline
-    python -m pip install -e . pytest
+    python -m pip install -e ".[dev]"
     python -m pytest
     python -m sre_log_pipeline.main
     find . -maxdepth 3 -type f | sort

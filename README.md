@@ -51,7 +51,7 @@ Forge is intended for portfolio projects, internal tooling, and future Friday/Co
     python3 -m venv .venv
     source .venv/bin/activate
     python -m pip install --upgrade pip
-    python -m pip install pytest
+    python -m pip install -e ".[dev]"
 
 ## Run Tests
 
@@ -67,7 +67,7 @@ Generated `python-worker` projects use a `src/` layout with setuptools package d
 Install the generated project before running tests so imports resolve as a normal Python package:
 
     cd ./generated-projects/sre-log-pipeline
-    python -m pip install -e . pytest
+    python -m pip install -e ".[dev]"
     python -m pytest
     python -m sre_log_pipeline.main
 

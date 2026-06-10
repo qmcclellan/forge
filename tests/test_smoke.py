@@ -100,7 +100,7 @@ def test_create_project_with_jenkins(tmp_path):
     jenkinsfile = (target / "Jenkinsfile").read_text()
 
     assert "pipeline" in jenkinsfile
-    assert "python -m pip install -e . pytest" in jenkinsfile
+    assert 'python -m pip install -e ".[dev]"' in jenkinsfile
     assert "python -m pytest" in jenkinsfile
     assert "jenkins-worker" in jenkinsfile
 
