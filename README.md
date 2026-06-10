@@ -96,3 +96,12 @@ It does not yet:
 Private Gitea remote:
 
     git@github.com:example/forge.git
+
+## Artifact publishing
+
+Forge-generated projects can publish Python packages, Docker images, and raw evidence files into the Friday Nexus artifact hub.
+
+See:
+
+```text
+docs/artifact-publishing.md
