@@ -4,4 +4,6 @@ WORKDIR /app
 
 COPY . .
 
-CMD ["python", "-m", "src.{{ package_name }}.main"]
+RUN python -m pip install .
+
+CMD ["python", "-m", "{{ package_name }}.main"]

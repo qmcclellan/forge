@@ -5,7 +5,7 @@
     python3 -m venv .venv
     source .venv/bin/activate
     python -m pip install --upgrade pip
-    python -m pip install pytest
+    python -m pip install -e . pytest
 
 ## Test
 
@@ -13,4 +13,4 @@
 
 ## Run
 
-    python3 -m src.{{ package_name }}.main
+    python3 -m {{ package_name }}.main

@@ -24,7 +24,7 @@ Run:
 
 Expected result:
 
-    5 passed
+    8 passed
 
 ## Basic CLI Smoke Test
 
@@ -44,6 +44,13 @@ Expected files:
     /tmp/forge-test/hello-worker/tests/test_smoke.py
     /tmp/forge-test/hello-worker/docs/runbook.md
     /tmp/forge-test/hello-worker/docs/interview-talk-track.md
+
+Optional generated project package smoke test:
+
+    cd /tmp/forge-test/hello-worker
+    python -m pip install -e . pytest
+    python -m pytest
+    python -m hello_worker.main
 
 ## Git Init Smoke Test
 

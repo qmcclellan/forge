@@ -59,7 +59,17 @@ Forge is intended for portfolio projects, internal tooling, and future Friday/Co
 
 Expected:
 
-    5 passed
+    8 passed
+
+## Generated Python Worker Usage
+
+Generated `python-worker` projects use a `src/` layout with setuptools package discovery.
+Install the generated project before running tests so imports resolve as a normal Python package:
+
+    cd ./generated-projects/sre-log-pipeline
+    python -m pip install -e . pytest
+    python -m pytest
+    python -m sre_log_pipeline.main
 
 ## Current Scope
 
