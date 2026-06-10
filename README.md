@@ -101,7 +101,4 @@ Private Gitea remote:
 
 Forge-generated projects can publish Python packages, Docker images, and raw evidence files into the Friday Nexus artifact hub.
 
-See:
-
-```text
-docs/artifact-publishing.md
+See `docs/artifact-publishing.md`.
