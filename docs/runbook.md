@@ -10,7 +10,7 @@ It creates new projects from reusable templates and can optionally add Git, Dock
 
 Run:
 
-    cd /srv/workspaces/projects/portfolio/forge
+    cd ./generated-projects/forge
     python3 -m venv .venv
     source .venv/bin/activate
     python -m pip install --upgrade pip

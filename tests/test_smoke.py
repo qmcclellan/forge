@@ -112,7 +112,7 @@ def test_create_project_with_remote_url_requires_git_init(tmp_path):
             template="python-worker",
             output_dir=str(tmp_path),
             description="A worker with a remote URL.",
-            remote_url="ssh://git@192.168.1.107:2222/portfolio/remote-worker.git",
+            remote_url="git@github.com:example/remote-worker.git",
         )
     except ValueError as error:
         assert "--remote-url requires --git-init" in str(error)
@@ -121,7 +121,7 @@ def test_create_project_with_remote_url_requires_git_init(tmp_path):
 
 
 def test_create_project_with_remote_url(tmp_path):
-    remote_url = "ssh://git@192.168.1.107:2222/portfolio/remote-worker.git"
+    remote_url = "git@github.com:example/remote-worker.git"
 
     target = create_project(
         name="remote-worker",

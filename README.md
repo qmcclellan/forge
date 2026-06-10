@@ -38,16 +38,16 @@ Forge is intended for portfolio projects, internal tooling, and future Friday/Co
 
     python3 -m forge.cli new "sre-log-pipeline" \
   --template python-worker \
-  --output-dir /srv/workspaces/projects/portfolio \
+  --output-dir ./generated-projects \
   --description "A small SRE-style log ingestion pipeline." \
   --with-docker \
   --with-jenkins \
   --git-init \
-  --remote-url ssh://git@192.168.1.107:2222/portfolio/sre-log-pipeline.git
+  --remote-url git@github.com:example/sre-log-pipeline.git
 
 ## Local Setup
 
-    cd /srv/workspaces/projects/portfolio/forge
+    cd ./generated-projects/forge
     python3 -m venv .venv
     source .venv/bin/activate
     python -m pip install --upgrade pip
@@ -85,4 +85,4 @@ It does not yet:
 
 Private Gitea remote:
 
-    ssh://git@192.168.1.107:2222/portfolio/forge.git
+    git@github.com:example/forge.git

@@ -76,7 +76,7 @@ Forge can now create a new Python worker project that is test-ready, doc-ready, 
 
 ## Demo Command
 
-    cd /srv/workspaces/projects/portfolio/forge
+    cd ./generated-projects/forge
     source .venv/bin/activate
     python -m pytest
 
