@@ -2,4 +2,4 @@ services:
   {{ project_slug }}:
     build: .
     container_name: {{ project_slug }}
-    command: python -m src.{{ package_name }}.main
+    command: python -m {{ package_name }}.main

@@ -35,6 +35,33 @@ def test_create_project(tmp_path):
     assert "A small worker project." in readme
     assert 'name = "hello-worker"' in pyproject
     assert "hello-worker is running." in main_py
+    assert "[build-system]" in pyproject
+    assert "[tool.setuptools.packages.find]" in pyproject
+    assert 'where = ["src"]' in pyproject
+    assert 'pythonpath = ["src"]' in pyproject
+
+
+def test_generated_project_smoke_test_runs_with_package_import(tmp_path):
+    target = create_project(
+        name="package-worker",
+        template="python-worker",
+        output_dir=str(tmp_path),
+        description="A worker with package imports.",
+    )
+
+    generated_test = (target / "tests" / "test_smoke.py").read_text()
+
+    assert "from package_worker.main import main" in generated_test
+    assert "from src.package_worker.main" not in generated_test
+
+    subprocess.run(
+        ["python", "-m", "pytest"],
+        cwd=target,
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
 
 
 def test_create_project_with_docker(tmp_path):
@@ -53,8 +80,11 @@ def test_create_project_with_docker(tmp_path):
     compose = (target / "docker-compose.yml").read_text()
 
     assert "FROM python:3.12-slim" in dockerfile
+    assert "RUN python -m pip install ." in dockerfile
+    assert 'CMD ["python", "-m", "docker_worker.main"]' in dockerfile
     assert "docker-worker" in compose
-    assert "src.docker_worker.main" in compose
+    assert "python -m docker_worker.main" in compose
+
 
 def test_create_project_with_jenkins(tmp_path):
     target = create_project(
@@ -70,6 +100,7 @@ def test_create_project_with_jenkins(tmp_path):
     jenkinsfile = (target / "Jenkinsfile").read_text()
 
     assert "pipeline" in jenkinsfile
+    assert "python -m pip install -e . pytest" in jenkinsfile
     assert "python -m pytest" in jenkinsfile
     assert "jenkins-worker" in jenkinsfile
 
