@@ -236,3 +236,54 @@ Next recommended feature:
     forge new my-service --template python-worker --template-source nexus --template-version 0.1.0
 
 Do not add new language templates until Forge can generate a project directly from a pulled Nexus-backed template.
+
+## Follow-up update — Nexus-backed project creation validated
+
+Forge now supports creating a new project directly from a verified Nexus-backed template.
+
+Validated command:
+
+    python -m forge.cli new nexus-worker \
+      --template python-worker \
+      --template-source nexus \
+      --template-version 0.1.0 \
+      --template-cache-dir /tmp/forge-template-new-cache \
+      --output-dir /tmp/forge-nexus-new-check \
+      --description "Generated from a verified Nexus-backed Forge template." \
+      --with-docker \
+      --with-jenkins
+
+The command successfully:
+
+1. Pulled the python-worker template from Nexus.
+2. Verified the template archive SHA256 against the manifest.
+3. Extracted the template into the local cache.
+4. Generated a new project from the verified cached template.
+5. Included Docker and Jenkins scaffold files.
+6. Ran the generated project's smoke test successfully.
+
+Validated generated project path:
+
+    /tmp/forge-nexus-new-check/nexus-worker
+
+Validated template cache path:
+
+    /tmp/forge-template-new-cache/python-worker/0.1.0/python-worker
+
+Completed approved-template launch flow:
+
+    package -> publish -> Nexus -> pull -> verify -> extract -> generate project
+
+Latest validated commit:
+
+    a360ca9 Add Nexus-backed Forge project creation
+
+Next recommended feature:
+
+    Add a small registry/list command or improve template metadata before adding new language templates.
+
+Recommended next command idea:
+
+    python -m forge.cli template list --source nexus
+
+Do not add Java/Spring/PyTorch templates until Forge can clearly show which approved templates and versions exist.

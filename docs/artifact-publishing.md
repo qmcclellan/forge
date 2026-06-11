@@ -207,3 +207,45 @@ Validated template archive SHA256:
 This completes the template registry loop:
 
     package -> publish -> Nexus -> pull -> verify -> extract
+
+## Forge project creation from a Nexus-backed template
+
+Forge can now create a project directly from a template pulled from Nexus.
+
+The template is downloaded, verified against its SHA256 manifest, extracted into a local cache, and then used as the source template directory for project generation.
+
+Validated command:
+
+    python -m forge.cli new nexus-worker \
+      --template python-worker \
+      --template-source nexus \
+      --template-version 0.1.0 \
+      --template-cache-dir /tmp/forge-template-new-cache \
+      --output-dir /tmp/forge-nexus-new-check \
+      --description "Generated from a verified Nexus-backed Forge template." \
+      --with-docker \
+      --with-jenkins
+
+Validated output included:
+
+    Using Nexus template
+    Verified template SHA256
+    Created project
+
+Validated generated project files included:
+
+    README.md
+    pyproject.toml
+    src/nexus_worker/main.py
+    tests/test_smoke.py
+    Dockerfile
+    docker-compose.yml
+    Jenkinsfile
+
+The generated project test passed:
+
+    python -m pytest
+
+This completes the approved-template launch flow:
+
+    package -> publish -> Nexus -> pull -> verify -> extract -> generate project
