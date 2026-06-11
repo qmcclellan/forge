@@ -191,3 +191,36 @@ Manual override remains available through:
 Latest lane commit:
 
     d8a2ad1 Add default output lanes for Forge projects
+
+## Node dashboard 0.1.1 npm Nexus approval
+
+The Node dashboard template was upgraded from 0.1.0 to 0.1.1.
+
+Approved template:
+
+    node-dashboard 0.1.1
+
+Validated feature:
+
+    Generated Node projects include .npmrc pointing to Nexus npm-public.
+
+npm endpoint:
+
+    http://192.168.1.107:8082/repository/npm-public/
+
+Generated file:
+
+    .npmrc
+
+Validated real generated project:
+
+    /srv/workspaces/projects/portfolio/generated-projects/frontend/node/forge-dashboard-011
+
+Current package manager status:
+
+    Java projects resolve Maven dependencies through Nexus maven-public.
+    Node projects resolve npm dependencies through Nexus npm-public.
+
+Recommended stopping point:
+
+    Stop Forge platform work here and begin scaffolding portfolio projects.
