@@ -114,10 +114,25 @@ Use local Friday disk for live Nexus data:
 
     /srv/devops/nexus/data
 
-Use NFS for backups, archive exports, and StarkGrid-ingestable evidence:
+Use Veronica NFS for backups, archive exports, manifests, and StarkGrid-ingestable evidence:
 
-    /mnt/starship/artifacts
-    /mnt/starship/nexus-backups
-    /mnt/starship/starkgrid-ingest/artifacts
+    /mnt/veronica-nfs/devops/nexus/artifacts
+    /mnt/veronica-nfs/devops/nexus/backups
+    /mnt/veronica-nfs/devops/nexus/manifests
+    /mnt/veronica-nfs/ingest/devops-artifacts
 
 Do not put active Nexus data directly on NFS unless the mount is proven stable and performant. Artifact managers and embedded databases behave better on local disk.
+
+## NFS smoke manifest
+
+Friday can write a Nexus smoke manifest to Veronica NFS with:
+
+    /srv/devops/nexus/bin/nexus-nfs-smoke.sh
+
+The script writes a timestamped manifest to:
+
+    /mnt/veronica-nfs/devops/nexus/manifests
+
+It also copies the manifest into the StarkGrid ingest-ready lane:
+
+    /mnt/veronica-nfs/ingest/devops-artifacts
