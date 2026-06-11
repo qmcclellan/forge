@@ -10,6 +10,14 @@ from forge.git_ops import add_remote_origin, run_git_init
 from forge.renderer import render_template_dir
 from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, package_template, publish_template, pull_template, list_nexus_templates, get_nexus_template_info, validate_template_structure
 
+DEFAULT_PROJECT_ROOT = Path("/srv/workspaces/projects/portfolio/generated-projects")
+
+DEFAULT_TEMPLATE_OUTPUT_DIRS = {
+    "python-worker": DEFAULT_PROJECT_ROOT / "backend" / "python",
+    "java-spring-service": DEFAULT_PROJECT_ROOT / "backend" / "java",
+    "node-dashboard": DEFAULT_PROJECT_ROOT / "frontend" / "node",
+}
+
 
 def slugify(value: str) -> str:
     value = value.strip().lower()
@@ -41,8 +49,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     new_parser.add_argument(
         "--output-dir",
-        default=".",
-        help="Directory where the project should be created.",
+        default=None,
+        help=(
+            "Directory where the project should be created. "
+            "Defaults to the template lane under "
+            "/srv/workspaces/projects/portfolio/generated-projects."
+        ),
     )
     new_parser.add_argument(
         "--description",
@@ -272,6 +284,18 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def resolve_output_dir(template: str, output_dir: str | None) -> str:
+    if output_dir:
+        return output_dir
+
+    return str(
+        DEFAULT_TEMPLATE_OUTPUT_DIRS.get(
+            template,
+            DEFAULT_PROJECT_ROOT / "scratch",
+        )
+    )
+
+
 def create_project(
     name: str,
     template: str,
@@ -360,7 +384,7 @@ def main() -> None:
         target = create_project(
             name=args.name,
             template=args.template,
-            output_dir=args.output_dir,
+            output_dir=resolve_output_dir(args.template, args.output_dir),
             description=args.description,
             git_init=args.git_init,
             with_docker=args.with_docker,
