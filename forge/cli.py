@@ -4,6 +4,7 @@ from pathlib import Path
 
 from forge.git_ops import add_remote_origin, run_git_init
 from forge.renderer import render_template_dir
+from forge.template_artifacts import package_template
 
 
 def slugify(value: str) -> str:
@@ -63,6 +64,28 @@ def build_parser() -> argparse.ArgumentParser:
         "--remote-url",
         default=None,
         help="Set the generated Git repository origin remote URL. Requires --git-init.",
+    )
+
+    template_parser = subparsers.add_parser(
+        "template",
+        help="Manage Forge templates.",
+    )
+    template_subparsers = template_parser.add_subparsers(dest="template_command")
+
+    package_parser = template_subparsers.add_parser(
+        "package",
+        help="Package a Forge template as a versioned artifact.",
+    )
+    package_parser.add_argument("template", help="Template name to package.")
+    package_parser.add_argument(
+        "--version",
+        required=True,
+        help="Template version to package.",
+    )
+    package_parser.add_argument(
+        "--output-dir",
+        default="dist/templates",
+        help="Directory where packaged template artifacts should be written.",
     )
 
     return parser
@@ -141,6 +164,16 @@ def main() -> None:
             remote_url=args.remote_url,
         )
         print(f"Created project: {target}")
+        return
+
+    if args.command == "template" and args.template_command == "package":
+        archive_path, manifest_path = package_template(
+            template=args.template,
+            version=args.version,
+            output_dir=args.output_dir,
+        )
+        print(f"Packaged template archive: {archive_path}")
+        print(f"Wrote template manifest: {manifest_path}")
         return
 
     parser.print_help()

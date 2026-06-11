@@ -172,3 +172,41 @@ def test_create_project_with_remote_url(tmp_path):
     ).stdout.strip()
 
     assert configured_remote == remote_url
+
+
+def test_package_template_creates_archive_and_manifest(tmp_path):
+    import json
+    import tarfile
+
+    from forge.template_artifacts import package_template
+
+    archive_path, manifest_path = package_template(
+        template="python-worker",
+        version="0.1.0",
+        output_dir=str(tmp_path),
+    )
+
+    assert archive_path.exists()
+    assert manifest_path.exists()
+    assert archive_path.name == "python-worker-0.1.0.tar.gz"
+    assert manifest_path.name == "python-worker-0.1.0.manifest.json"
+
+    manifest = json.loads(manifest_path.read_text())
+
+    assert manifest["template"] == "python-worker"
+    assert manifest["version"] == "0.1.0"
+    assert manifest["archive"] == "python-worker-0.1.0.tar.gz"
+    assert manifest["file_count"] > 0
+    assert manifest["archive_sha256"]
+
+    paths = {entry["path"] for entry in manifest["files"]}
+
+    assert "README.md.tmpl" in paths
+    assert "pyproject.toml.tmpl" in paths
+    assert "tests/test_smoke.py.tmpl" in paths
+
+    with tarfile.open(archive_path, "r:gz") as archive:
+        names = set(archive.getnames())
+
+    assert "python-worker/README.md.tmpl" in names
+    assert "python-worker/pyproject.toml.tmpl" in names
