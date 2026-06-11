@@ -92,3 +92,40 @@ The duplicate repositories:
     maven-snapshots2
 
 were removed after confirming the standard Maven repositories already existed.
+
+## Java Spring service 0.1.1 approval
+
+The Java Spring service template was upgraded from 0.1.0 to 0.1.1.
+
+Approved template:
+
+    java-spring-service 0.1.1
+
+Validated archive SHA256:
+
+    1214e2fdf5c01c0c006221a50108938ca3dffd7b1d2b40b5e2c7690a0e0d31ad
+
+Validated feature:
+
+    Generated Java projects include Maven Nexus settings.
+
+Generated files:
+
+    .mvn/maven.config
+    .mvn/settings.xml
+
+Maven endpoint:
+
+    http://192.168.1.107:8082/repository/maven-public/
+
+Validated real generated project:
+
+    /srv/workspaces/projects/portfolio/generated-projects/backend/java/java-nexus-api-011
+
+Validated flow:
+
+    validate -> publish -> list -> info -> pull -> verify SHA256 -> generate from Nexus -> verify Maven Nexus settings
+
+Latest Java template commit:
+
+    b6f9adb Add Nexus Maven settings to Java template
