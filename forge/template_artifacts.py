@@ -528,4 +528,3 @@ def validate_template_structure(
             warnings.append(f"Optional template file not found: {optional}")
 
     return {"errors": errors, "warnings": warnings, "metadata": metadata}
-
