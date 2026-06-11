@@ -270,3 +270,38 @@ Validated output:
     python-worker   0.1.0      yes      0bd4ee89eeedda27c2597d694904729f84a703f2307fc29a4465564996b4b665
 
 This lets Forge show which approved templates exist before generating new projects or adding more language templates.
+
+## Forge template metadata
+
+Forge templates can include a template metadata file:
+
+    templates/python-worker/template.json
+
+The metadata is included in the packaged template manifest and displayed in the Nexus template listing.
+
+Validated metadata fields:
+
+    name
+    language
+    runtime
+    description
+    tags
+    recommended_use
+
+Validated metadata version:
+
+    python-worker 0.1.1
+
+Validated command:
+
+    python -m forge.cli template list --source nexus
+
+Validated output included:
+
+    TEMPLATE        VERSION    CACHED    LANGUAGE    RUNTIME       ARCHIVE_SHA256
+    python-worker   0.1.1      yes      python      python-3.12   9a3f7d0515000855c2a8c1bf40e70338b368a725f5ab397b6b1f05ac3bd8f6f6
+
+Version note:
+
+    python-worker 0.1.0 does not show metadata because it was published before template.json existed.
+    python-worker 0.1.1 is the first metadata-backed approved template version.

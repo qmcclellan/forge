@@ -316,3 +316,49 @@ Current completed flow:
 Next recommended feature:
 
     Add template metadata fields such as language, runtime, description, tags, and recommended use before adding Java/Spring/PyTorch templates.
+
+## Follow-up update — Template metadata validated
+
+Forge now supports template metadata through:
+
+    templates/python-worker/template.json
+
+Validated metadata fields:
+
+    name
+    language
+    runtime
+    description
+    tags
+    recommended_use
+
+Validated metadata-backed template version:
+
+    python-worker 0.1.1
+
+Validated published archive SHA256:
+
+    9a3f7d0515000855c2a8c1bf40e70338b368a725f5ab397b6b1f05ac3bd8f6f6
+
+Validated behavior:
+
+1. Metadata is included in the packaged manifest.
+2. Metadata is published to Nexus through the manifest.
+3. Forge template list displays language and runtime.
+4. Forge pull verifies and caches the metadata-backed template.
+
+Latest validated commit:
+
+    4101cc1 Add Forge template metadata
+
+Current Forge platform flow:
+
+    template metadata -> package -> publish -> list -> pull -> verify -> extract -> generate project
+
+Next recommended feature:
+
+    Add a cleaner template detail command before adding more templates.
+
+Possible command:
+
+    python -m forge.cli template info python-worker --version 0.1.1 --source nexus
