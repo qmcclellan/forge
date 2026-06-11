@@ -433,3 +433,85 @@ def get_nexus_template_info(
             return item
 
     raise FileNotFoundError(f"Template not found in Nexus: {template} {version}")
+
+
+REQUIRED_TEMPLATE_METADATA_FIELDS = {
+    "name",
+    "language",
+    "runtime",
+    "description",
+    "tags",
+    "recommended_use",
+}
+
+
+REQUIRED_TEMPLATE_FILES = {
+    "template.json",
+    "README.md.tmpl",
+    "pyproject.toml.tmpl",
+    "src/__package__/__init__.py.tmpl",
+    "src/__package__/main.py.tmpl",
+    "tests/test_smoke.py.tmpl",
+}
+
+
+def validate_template_structure(
+    template: str,
+    template_dir: str | None = None,
+) -> dict[str, list[str]]:
+    repo_root = Path(__file__).resolve().parent.parent
+
+    if template_dir:
+        root = Path(template_dir).expanduser().resolve()
+    else:
+        root = repo_root / "templates" / template
+
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if not root.exists():
+        errors.append(f"Template directory does not exist: {root}")
+        return {"errors": errors, "warnings": warnings}
+
+    metadata_path = root / "template.json"
+    metadata = {}
+
+    if not metadata_path.exists():
+        errors.append("Missing required metadata file: template.json")
+    else:
+        try:
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            errors.append(f"Invalid template.json: {error}")
+
+    for field in sorted(REQUIRED_TEMPLATE_METADATA_FIELDS):
+        if not metadata.get(field):
+            errors.append(f"Missing required metadata field: {field}")
+
+    if metadata.get("name") and metadata["name"] != template:
+        errors.append(f"template.json name must match template name: {template}")
+
+    tags = metadata.get("tags")
+    if tags is not None and not isinstance(tags, list):
+        errors.append("template.json field must be a list: tags")
+
+    existing_files = {
+        str(path.relative_to(root))
+        for path in root.rglob("*")
+        if path.is_file()
+    }
+
+    for required in sorted(REQUIRED_TEMPLATE_FILES):
+        if required not in existing_files:
+            errors.append(f"Missing required template file: {required}")
+
+    if "Dockerfile.tmpl" not in existing_files:
+        warnings.append("Optional Dockerfile.tmpl not found")
+
+    if "docker-compose.yml.tmpl" not in existing_files:
+        warnings.append("Optional docker-compose.yml.tmpl not found")
+
+    if "Jenkinsfile.tmpl" not in existing_files:
+        warnings.append("Optional Jenkinsfile.tmpl not found")
+
+    return {"errors": errors, "warnings": warnings}

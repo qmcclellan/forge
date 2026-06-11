@@ -438,3 +438,28 @@ def test_get_nexus_template_info_finds_matching_template(monkeypatch):
     assert item["version"] == "0.1.1"
     assert item["language"] == "python"
     assert item["runtime"] == "python-3.12"
+
+
+def test_validate_template_structure_passes_for_python_worker():
+    from forge.template_artifacts import validate_template_structure
+
+    result = validate_template_structure("python-worker")
+
+    assert result["errors"] == []
+
+
+def test_validate_template_command_exists():
+    parser = build_parser()
+    args = parser.parse_args(
+        [
+            "template",
+            "validate",
+            "python-worker",
+            "--skip-smoke",
+        ]
+    )
+
+    assert args.command == "template"
+    assert args.template_command == "validate"
+    assert args.template == "python-worker"
+    assert args.skip_smoke is True
