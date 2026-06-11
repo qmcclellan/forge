@@ -1,0 +1,33 @@
+{
+  "name": "java-spring-service",
+  "language": "java",
+  "runtime": "java-21",
+  "description": "A minimal Java Spring Boot-style service scaffold with Maven layout, health endpoint, Docker support, and Jenkins pipeline support.",
+  "tags": [
+    "java",
+    "spring",
+    "service",
+    "maven",
+    "docker",
+    "jenkins",
+    "portfolio"
+  ],
+  "recommended_use": "Use for backend service scaffolds, API service demos, DevOps pipeline examples, and portfolio-ready Java service foundations.",
+  "required_files": [
+    "template.json",
+    "README.md.tmpl",
+    "pom.xml.tmpl",
+    "src/main/java/com/example/__package__/Application.java.tmpl",
+    "src/test/java/com/example/__package__/ApplicationSmokeTest.java.tmpl"
+  ],
+  "optional_files": [
+    "Dockerfile.tmpl",
+    "docker-compose.yml.tmpl",
+    "Jenkinsfile.tmpl"
+  ],
+  "smoke_test_command": [
+    "bash",
+    "-lc",
+    "test -f pom.xml && test -f src/main/java/com/example/java_spring_service_validate_smoke/Application.java && grep -q 'SpringApplication.run' src/main/java/com/example/java_spring_service_validate_smoke/Application.java"
+  ]
+}
