@@ -136,3 +136,39 @@ The script writes a timestamped manifest to:
 It also copies the manifest into the StarkGrid ingest-ready lane:
 
     /mnt/veronica-nfs/ingest/devops-artifacts
+
+## Forge template artifact packaging
+
+Forge can package a known-good project template as a versioned artifact.
+
+Package the Python worker template:
+
+    python -m forge.cli template package python-worker --version 0.1.0
+
+Expected output:
+
+    dist/templates/python-worker-0.1.0.tar.gz
+    dist/templates/python-worker-0.1.0.manifest.json
+
+The archive contains the reusable Forge template files.
+
+The manifest records:
+
+- template name
+- template version
+- archive filename
+- archive SHA256
+- file count
+- per-file SHA256 hashes
+
+The validated Python worker template was published to Nexus raw-hosted at:
+
+    http://192.168.1.107:8082/repository/raw-hosted/forge/templates/python-worker/0.1.0/
+
+The archived NFS copy is stored at:
+
+    /mnt/veronica-nfs/devops/nexus/artifacts/forge/templates/python-worker/0.1.0/
+
+The StarkGrid ingest-ready evidence is stored at:
+
+    /mnt/veronica-nfs/ingest/devops-artifacts/
