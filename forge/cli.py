@@ -6,7 +6,7 @@ from pathlib import Path
 
 from forge.git_ops import add_remote_origin, run_git_init
 from forge.renderer import render_template_dir
-from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, package_template, publish_template, pull_template
+from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, package_template, publish_template, pull_template, list_nexus_templates
 
 
 def slugify(value: str) -> str:
@@ -183,6 +183,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="Local template cache directory.",
     )
 
+    list_parser = template_subparsers.add_parser(
+        "list",
+        help="List Forge templates from a registry source.",
+    )
+    list_parser.add_argument(
+        "--source",
+        choices=["nexus"],
+        default="nexus",
+        help="Template registry source to list.",
+    )
+    list_parser.add_argument(
+        "--repository-url",
+        default=DEFAULT_NEXUS_RAW_URL,
+        help="Nexus raw-hosted repository URL.",
+    )
+    list_parser.add_argument(
+        "--username",
+        default=os.environ.get("NEXUS_USERNAME", "admin"),
+        help="Nexus username. Defaults to NEXUS_USERNAME or admin.",
+    )
+    list_parser.add_argument(
+        "--password",
+        default=os.environ.get("NEXUS_PASSWORD"),
+        help="Nexus password. Defaults to NEXUS_PASSWORD or prompt.",
+    )
+    list_parser.add_argument(
+        "--cache-dir",
+        default="~/.forge/templates",
+        help="Local template cache directory used to report cache status.",
+    )
+
     return parser
 
 
@@ -330,6 +361,29 @@ def main() -> None:
         print(f"Verified archive SHA256: {result['archive_sha256']}")
         print(f"Extracted template directory: {result['template_dir']}")
         print(f"Template cache directory: {result['cache_dir']}")
+        return
+
+    if args.command == "template" and args.template_command == "list":
+        password = args.password or getpass.getpass(f"Nexus password for {args.username}: ")
+        templates = list_nexus_templates(
+            repository_url=args.repository_url,
+            username=args.username,
+            password=password,
+            cache_dir=args.cache_dir,
+        )
+
+        if not templates:
+            print("No Forge templates found.")
+            return
+
+        print("TEMPLATE        VERSION    CACHED    ARCHIVE_SHA256")
+        for item in templates:
+            print(
+                f"{item['template']:<15} "
+                f"{item['version']:<10} "
+                f"{item['cached']:<8} "
+                f"{item['archive_sha256']}"
+            )
         return
 
     parser.print_help()

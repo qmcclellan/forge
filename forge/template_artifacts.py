@@ -295,3 +295,107 @@ def pull_template(
         "template_dir": str(extracted_template_dir),
         "archive_sha256": actual_sha,
     }
+
+
+def nexus_search_assets_url(repository_url: str) -> str:
+    base = repository_url.rstrip("/")
+    marker = "/repository/"
+    if marker not in base:
+        raise ValueError(f"Expected Nexus repository URL containing /repository/: {repository_url}")
+
+    server = base.split(marker, 1)[0]
+    repository = base.rsplit("/", 1)[-1]
+
+    return f"{server}/service/rest/v1/search/assets?repository={repository}"
+
+
+def download_json(
+    url: str,
+    username: str | None = None,
+    password: str | None = None,
+) -> dict:
+    headers = {}
+    if username and password:
+        headers["Authorization"] = basic_auth_header(username, password)
+
+    request = urllib.request.Request(url=url, method="GET", headers=headers)
+
+    with urllib.request.urlopen(request, timeout=60) as response:
+        if response.status != 200:
+            raise RuntimeError(f"Download failed for {url}: HTTP {response.status}")
+        return json.loads(response.read().decode("utf-8"))
+
+
+def list_nexus_template_assets(
+    repository_url: str = DEFAULT_NEXUS_RAW_URL,
+    username: str | None = None,
+    password: str | None = None,
+) -> list[dict]:
+    base_url = nexus_search_assets_url(repository_url)
+    assets: list[dict] = []
+    continuation_token = None
+
+    while True:
+        url = base_url
+        if continuation_token:
+            url = f"{base_url}&continuationToken={continuation_token}"
+
+        payload = download_json(url, username=username, password=password)
+        assets.extend(payload.get("items", []))
+
+        continuation_token = payload.get("continuationToken")
+        if not continuation_token:
+            break
+
+    return assets
+
+
+def list_nexus_templates(
+    repository_url: str = DEFAULT_NEXUS_RAW_URL,
+    username: str | None = None,
+    password: str | None = None,
+    cache_dir: str = DEFAULT_TEMPLATE_CACHE,
+) -> list[dict[str, str]]:
+    assets = list_nexus_template_assets(
+        repository_url=repository_url,
+        username=username,
+        password=password,
+    )
+
+    templates: list[dict[str, str]] = []
+
+    for asset in assets:
+        path = asset.get("path", "").strip("/")
+        download_url = asset.get("downloadUrl", "")
+
+        if not path.startswith("forge/templates/"):
+            continue
+        if not path.endswith(".manifest.json"):
+            continue
+
+        parts = path.split("/")
+        if len(parts) < 5:
+            continue
+
+        template = parts[2]
+        version = parts[3]
+
+        manifest = download_json(download_url, username=username, password=password)
+        archive_sha256 = manifest.get("archive_sha256", "")
+
+        cached_template_dir = (
+            Path(cache_dir).expanduser().resolve() / template / version / template
+        )
+        cached = "yes" if cached_template_dir.exists() else "no"
+
+        templates.append(
+            {
+                "template": template,
+                "version": version,
+                "archive_sha256": archive_sha256,
+                "manifest_url": download_url,
+                "cached": cached,
+            }
+        )
+
+    return sorted(templates, key=lambda item: (item["template"], item["version"]))

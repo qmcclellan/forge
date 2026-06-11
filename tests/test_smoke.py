@@ -331,3 +331,28 @@ def test_new_command_accepts_nexus_template_source():
     assert args.template_cache_dir == "/tmp/forge-cache"
     assert args.username == "admin"
     assert args.password == "secret"
+
+
+def test_template_list_command_exists():
+    parser = build_parser()
+    args = parser.parse_args(
+        [
+            "template",
+            "list",
+            "--source",
+            "nexus",
+            "--username",
+            "admin",
+            "--password",
+            "secret",
+            "--cache-dir",
+            "/tmp/forge-cache",
+        ]
+    )
+
+    assert args.command == "template"
+    assert args.template_command == "list"
+    assert args.source == "nexus"
+    assert args.username == "admin"
+    assert args.password == "secret"
+    assert args.cache_dir == "/tmp/forge-cache"
