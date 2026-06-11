@@ -129,3 +129,40 @@ Validated flow:
 Latest Java template commit:
 
     b6f9adb Add Nexus Maven settings to Java template
+
+## Node dashboard 0.1.0 approval
+
+Approved template:
+
+    node-dashboard 0.1.0
+
+Runtime:
+
+    node-20
+
+Validated archive SHA256:
+
+    05493e35fa1e30c80192dbc29b122753d96f0d4fa699c3f89ba77e55bf8caca3
+
+Validated feature:
+
+    Generated frontend dashboard projects include Vite-style React layout, Docker support, and Jenkins pipeline support.
+
+Validated real generated project:
+
+    /srv/workspaces/projects/portfolio/generated-projects/frontend/node/forge-dashboard-010
+
+Validated flow:
+
+    validate -> publish -> list -> info -> pull -> verify SHA256 -> generate from Nexus -> verify frontend files
+
+Latest Node template commits:
+
+    56f2d09 Add Node dashboard Forge template
+    6a517a8 Fix Node dashboard template validation
+
+Current approved template catalog:
+
+    python-worker 0.1.1
+    java-spring-service 0.1.1
+    node-dashboard 0.1.0
