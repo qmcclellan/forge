@@ -152,3 +152,63 @@ Do not add Java, Spring, PyTorch, or other templates until the template has:
 - successful pull and SHA verification
 - successful project generation
 - passing generated project smoke test
+
+## Approved Java Spring service template
+
+Template:
+
+    java-spring-service
+
+Version:
+
+    0.1.0
+
+Language:
+
+    java
+
+Runtime:
+
+    java-21
+
+Validated archive SHA256:
+
+    0dad24c3fa3a02daead19158cca1d4060df65a9dcb1e5c2399f67102842e804c
+
+Validated approved-template flow:
+
+    validate -> package -> publish -> list -> info -> pull -> generate -> verify
+
+Validated commands:
+
+    python -m forge.cli template validate java-spring-service
+    python -m forge.cli template package java-spring-service --version 0.1.0
+    python -m forge.cli template publish java-spring-service --version 0.1.0
+    python -m forge.cli template list --source nexus
+    python -m forge.cli template info java-spring-service --version 0.1.0 --source nexus
+    python -m forge.cli template pull java-spring-service --version 0.1.0
+
+Validated Nexus-backed project generation:
+
+    python -m forge.cli new java-api \
+      --template java-spring-service \
+      --template-source nexus \
+      --template-version 0.1.0 \
+      --output-dir /tmp/forge-java-service-check \
+      --description "Generated from a verified Nexus-backed Java Spring Forge template." \
+      --with-docker \
+      --with-jenkins
+
+Validated generated files:
+
+    pom.xml
+    README.md
+    template.json
+    Dockerfile
+    docker-compose.yml
+    Jenkinsfile
+    src/main/java/com/example/java_api/Application.java
+
+Validated source check:
+
+    grep -n "SpringApplication.run" /tmp/forge-java-service-check/java-api/src/main/java/com/example/java_api/Application.java

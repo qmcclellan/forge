@@ -413,3 +413,47 @@ Possible Q&A topics:
     Why not just copy templates from Git?
     What does this prove for DevOps?
     What should be added before Java/Spring/PyTorch templates?
+
+## Follow-up update — Java Spring service template approved
+
+Forge now has a second approved template:
+
+    java-spring-service 0.1.0
+
+Validated metadata:
+
+    language: java
+    runtime: java-21
+
+Validated archive SHA256:
+
+    0dad24c3fa3a02daead19158cca1d4060df65a9dcb1e5c2399f67102842e804c
+
+The Java template completed the approved-template gate:
+
+    validate -> package -> publish -> list -> info -> pull -> generate -> verify
+
+Validated generated project:
+
+    /tmp/forge-java-service-check/java-api
+
+Validated generated source file:
+
+    /tmp/forge-java-service-check/java-api/src/main/java/com/example/java_api/Application.java
+
+Validated source check:
+
+    SpringApplication.run
+
+Latest validated template commit:
+
+    ba2b186 Add Java Spring service Forge template
+
+Current approved templates:
+
+    python-worker 0.1.1
+    java-spring-service 0.1.0
+
+Next recommended template candidate:
+
+    pytorch-worker or node-dashboard, but only through the same approved-template gate.
