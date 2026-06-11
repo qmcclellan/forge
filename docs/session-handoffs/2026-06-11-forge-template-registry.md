@@ -1,0 +1,201 @@
+# Forge Session Handoff — 2026-06-11
+
+## Milestone
+
+Forge reached an internal developer platform checkpoint.
+
+Forge now supports:
+
+- Python worker project scaffolding
+- Optional Docker scaffold generation
+- Optional Jenkinsfile generation
+- Git init and remote setup
+- Deterministic template artifact packaging
+- SHA256 template manifests
+- Template publishing to Nexus raw-hosted
+- NFS archival of template artifacts and receipts
+- StarkGrid ingest-ready evidence output
+
+## Latest validated commit
+
+8e9de84 Add Forge template Nexus publishing
+
+Pushed to:
+
+- Private Gitea: ssh://git@192.168.1.107:2222/portfolio/forge.git
+- GitHub: git@github.com:qmcclellan/forge.git
+
+## Validated Forge command
+
+From:
+
+    /srv/workspaces/projects/portfolio/forge
+
+Command:
+
+    source .venv/bin/activate
+    python -m forge.cli template publish python-worker --version 0.1.0
+
+This command successfully:
+
+1. Packaged the python-worker template.
+2. Created a deterministic tar.gz archive.
+3. Created a SHA256 manifest.
+4. Uploaded archive and manifest to Nexus raw-hosted.
+5. Archived files to Veronica NFS.
+6. Copied receipt and manifest into the StarkGrid ingest-ready lane.
+
+## Published template
+
+Template:
+
+    python-worker
+
+Version:
+
+    0.1.0
+
+Nexus raw-hosted location:
+
+    http://192.168.1.107:8082/repository/raw-hosted/forge/templates/python-worker/0.1.0/
+
+Files:
+
+    python-worker-0.1.0.tar.gz
+    python-worker-0.1.0.manifest.json
+
+Validated deterministic archive SHA256:
+
+    0bd4ee89eeedda27c2597d694904729f84a703f2307fc29a4465564996b4b665
+
+The archive was downloaded back from Nexus and the SHA256 matched the manifest.
+
+## NFS archive location
+
+    /mnt/veronica-nfs/devops/nexus/artifacts/forge/templates/python-worker/0.1.0/
+
+Contains:
+
+    python-worker-0.1.0.tar.gz
+    python-worker-0.1.0.manifest.json
+    publish-receipt-20260611T014627Z.txt
+
+## StarkGrid ingest-ready evidence
+
+    /mnt/veronica-nfs/ingest/devops-artifacts/
+
+Contains:
+
+    forge-template-python-worker-0.1.0.manifest.json
+    publish-receipt-20260611T014627Z.txt
+    nexus-smoke-20260611T000613Z.txt
+
+## Nexus / Friday artifact hub
+
+Nexus runs on Friday.
+
+Nexus UI:
+
+    http://192.168.1.107:8082
+
+Docker registry:
+
+    192.168.1.107:5000
+
+PyPI hosted:
+
+    http://192.168.1.107:8082/repository/pypi-hosted/
+
+Raw hosted:
+
+    http://192.168.1.107:8082/repository/raw-hosted/
+
+Validated Nexus capabilities:
+
+- Raw artifact upload/download
+- Docker image push/pull
+- PyPI wheel/sdist upload
+- Clean virtualenv install from Nexus PyPI
+- Forge template raw-hosted publish/download
+- SHA256 integrity check
+
+## Friday / Veronica NFS layout
+
+Friday mounts Veronica NFS at:
+
+    /mnt/veronica-nfs
+
+Live Nexus data remains local on Friday:
+
+    /srv/devops/nexus/data
+
+NFS archive and evidence paths:
+
+    /mnt/veronica-nfs/devops/nexus/artifacts
+    /mnt/veronica-nfs/devops/nexus/backups
+    /mnt/veronica-nfs/devops/nexus/manifests
+    /mnt/veronica-nfs/ingest/devops-artifacts
+
+Important boundary:
+
+    /mnt/veronica-nfs/artifacts/argus
+
+That path is StarkGrid/Argus artifact space. Do not use it for Nexus or Forge DevOps dumps.
+
+## Current platform model
+
+Forge creates and publishes approved templates.
+Gitea stores source code.
+Jenkins builds, tests, and publishes project outputs.
+Nexus stores packages, Docker images, raw artifacts, and Forge templates.
+Veronica NFS stores archives, backups, and evidence.
+StarkGrid indexes and searches evidence and manifests.
+Coder and NoMachine provide portable developer access.
+
+One-line summary:
+
+    Forge creates the project, Gitea tracks it, Jenkins proves it, Nexus stores it, NFS archives it, and StarkGrid makes the evidence searchable.
+
+## Next session plan
+
+Do not start with Java, Spring, PyTorch, or other templates yet.
+
+Next Forge feature:
+
+    forge template pull
+
+Goal:
+
+- Download a Forge template from Nexus.
+- Download its manifest.
+- Verify SHA256.
+- Extract it into a local template cache.
+- Prepare for future Forge project creation from Nexus-backed template versions.
+
+Possible future command:
+
+    python -m forge.cli template pull python-worker --version 0.1.0
+
+Later goal:
+
+    forge new my-service --template python-worker --template-source nexus --template-version 0.1.0
+
+## Hardware note
+
+A 1 TB SSD is on its way for Friday.
+
+Recommended future storage direction:
+
+Friday 1 TB SSD:
+
+- live Nexus data
+- Docker layers
+- Gitea active data
+- Jenkins/Coder active caches
+
+Veronica:
+
+- SSD scratch later
+- HDD/SAS HDD for cold archive, backups, and StarkGrid evidence
+
+Mellanox / 10GbE becomes useful once SSD scratch and artifact movement are heavy enough that 1GbE becomes annoying.
