@@ -31,6 +31,6 @@
   "smoke_test_command": [
     "bash",
     "-lc",
-    "test -f package.json && test -f index.html && test -f src/App.jsx && grep -q '{{ project_name }}' src/App.jsx"
+    "test -f package.json && test -f index.html && test -f src/App.jsx && grep -q 'Forge Generated Dashboard' src/App.jsx && grep -q 'vite' package.json"
   ]
 }
