@@ -411,3 +411,25 @@ def list_nexus_templates(
         )
 
     return sorted(templates, key=lambda item: (item["template"], item["version"]))
+
+
+def get_nexus_template_info(
+    template: str,
+    version: str,
+    repository_url: str = DEFAULT_NEXUS_RAW_URL,
+    username: str | None = None,
+    password: str | None = None,
+    cache_dir: str = DEFAULT_TEMPLATE_CACHE,
+) -> dict[str, str]:
+    templates = list_nexus_templates(
+        repository_url=repository_url,
+        username=username,
+        password=password,
+        cache_dir=cache_dir,
+    )
+
+    for item in templates:
+        if item["template"] == template and item["version"] == version:
+            return item
+
+    raise FileNotFoundError(f"Template not found in Nexus: {template} {version}")

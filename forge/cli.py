@@ -6,7 +6,7 @@ from pathlib import Path
 
 from forge.git_ops import add_remote_origin, run_git_init
 from forge.renderer import render_template_dir
-from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, package_template, publish_template, pull_template, list_nexus_templates
+from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, package_template, publish_template, pull_template, list_nexus_templates, get_nexus_template_info
 
 
 def slugify(value: str) -> str:
@@ -214,6 +214,43 @@ def build_parser() -> argparse.ArgumentParser:
         help="Local template cache directory used to report cache status.",
     )
 
+    info_parser = template_subparsers.add_parser(
+        "info",
+        help="Show detailed information for a Forge template.",
+    )
+    info_parser.add_argument("template", help="Template name.")
+    info_parser.add_argument(
+        "--version",
+        required=True,
+        help="Template version.",
+    )
+    info_parser.add_argument(
+        "--source",
+        choices=["nexus"],
+        default="nexus",
+        help="Template registry source.",
+    )
+    info_parser.add_argument(
+        "--repository-url",
+        default=DEFAULT_NEXUS_RAW_URL,
+        help="Nexus raw-hosted repository URL.",
+    )
+    info_parser.add_argument(
+        "--username",
+        default=os.environ.get("NEXUS_USERNAME", "admin"),
+        help="Nexus username. Defaults to NEXUS_USERNAME or admin.",
+    )
+    info_parser.add_argument(
+        "--password",
+        default=os.environ.get("NEXUS_PASSWORD"),
+        help="Nexus password. Defaults to NEXUS_PASSWORD or prompt.",
+    )
+    info_parser.add_argument(
+        "--cache-dir",
+        default="~/.forge/templates",
+        help="Local template cache directory used to report cache status.",
+    )
+
     return parser
 
 
@@ -386,6 +423,29 @@ def main() -> None:
                 f"{item.get('runtime', ''):<13} "
                 f"{item['archive_sha256']}"
             )
+        return
+
+    if args.command == "template" and args.template_command == "info":
+        password = args.password or getpass.getpass(f"Nexus password for {args.username}: ")
+        item = get_nexus_template_info(
+            template=args.template,
+            version=args.version,
+            repository_url=args.repository_url,
+            username=args.username,
+            password=password,
+            cache_dir=args.cache_dir,
+        )
+
+        print(f"Template: {item['template']}")
+        print(f"Version: {item['version']}")
+        print(f"Language: {item.get('language', '')}")
+        print(f"Runtime: {item.get('runtime', '')}")
+        print(f"Cached: {item['cached']}")
+        print(f"Archive SHA256: {item['archive_sha256']}")
+        print(f"Description: {item.get('description', '')}")
+        print(f"Tags: {item.get('tags', '')}")
+        print(f"Recommended use: {item.get('recommended_use', '')}")
+        print(f"Manifest URL: {item['manifest_url']}")
         return
 
     parser.print_help()

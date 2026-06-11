@@ -376,3 +376,65 @@ def test_package_template_includes_template_metadata(tmp_path):
     assert manifest["metadata"]["runtime"] == "python-3.12"
     assert "worker" in manifest["metadata"]["tags"]
     assert manifest["metadata"]["recommended_use"]
+
+
+def test_template_info_command_exists():
+    parser = build_parser()
+    args = parser.parse_args(
+        [
+            "template",
+            "info",
+            "python-worker",
+            "--version",
+            "0.1.1",
+            "--source",
+            "nexus",
+            "--username",
+            "admin",
+            "--password",
+            "secret",
+            "--cache-dir",
+            "/tmp/forge-cache",
+        ]
+    )
+
+    assert args.command == "template"
+    assert args.template_command == "info"
+    assert args.template == "python-worker"
+    assert args.version == "0.1.1"
+    assert args.source == "nexus"
+    assert args.username == "admin"
+    assert args.password == "secret"
+    assert args.cache_dir == "/tmp/forge-cache"
+
+
+def test_get_nexus_template_info_finds_matching_template(monkeypatch):
+    from forge import template_artifacts
+
+    def fake_list_nexus_templates(**kwargs):
+        return [
+            {
+                "template": "python-worker",
+                "version": "0.1.1",
+                "archive_sha256": "abc123",
+                "manifest_url": "http://example/manifest.json",
+                "cached": "yes",
+                "language": "python",
+                "runtime": "python-3.12",
+                "description": "A worker template.",
+                "recommended_use": "Use for workers.",
+                "tags": "python,worker",
+            }
+        ]
+
+    monkeypatch.setattr(template_artifacts, "list_nexus_templates", fake_list_nexus_templates)
+
+    item = template_artifacts.get_nexus_template_info(
+        template="python-worker",
+        version="0.1.1",
+    )
+
+    assert item["template"] == "python-worker"
+    assert item["version"] == "0.1.1"
+    assert item["language"] == "python"
+    assert item["runtime"] == "python-3.12"
