@@ -1,0 +1,26 @@
+export default function App() {
+  return (
+    <main className="app-shell">
+      <section className="hero-card">
+        <p className="eyebrow">Forge Generated Dashboard</p>
+        <h1>{{ project_name }}</h1>
+        <p>{{ description }}</p>
+
+        <div className="status-grid">
+          <div>
+            <span className="label">Template</span>
+            <strong>node-dashboard</strong>
+          </div>
+          <div>
+            <span className="label">Runtime</span>
+            <strong>Node 20</strong>
+          </div>
+          <div>
+            <span className="label">Build</span>
+            <strong>Vite</strong>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}

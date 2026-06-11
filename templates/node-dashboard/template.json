@@ -1,0 +1,36 @@
+{
+  "name": "node-dashboard",
+  "language": "node",
+  "runtime": "node-20",
+  "description": "A minimal Vite-style Node dashboard scaffold with frontend source layout, Docker support, and Jenkins pipeline support.",
+  "tags": [
+    "node",
+    "vite",
+    "react",
+    "dashboard",
+    "frontend",
+    "docker",
+    "jenkins",
+    "portfolio"
+  ],
+  "recommended_use": "Use for frontend dashboards, internal admin panels, portfolio UI demos, and lightweight service dashboards that can pair with Java or Python backend services.",
+  "required_files": [
+    "template.json",
+    "README.md.tmpl",
+    "package.json.tmpl",
+    "index.html.tmpl",
+    "src/App.jsx.tmpl",
+    "src/main.jsx.tmpl",
+    "src/styles.css.tmpl"
+  ],
+  "optional_files": [
+    "Dockerfile.tmpl",
+    "docker-compose.yml.tmpl",
+    "Jenkinsfile.tmpl"
+  ],
+  "smoke_test_command": [
+    "bash",
+    "-lc",
+    "test -f package.json && test -f index.html && test -f src/App.jsx && grep -q '{{ project_name }}' src/App.jsx"
+  ]
+}
