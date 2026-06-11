@@ -1,10 +1,12 @@
 import argparse
+import getpass
+import os
 import re
 from pathlib import Path
 
 from forge.git_ops import add_remote_origin, run_git_init
 from forge.renderer import render_template_dir
-from forge.template_artifacts import package_template
+from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, package_template, publish_template
 
 
 def slugify(value: str) -> str:
@@ -83,6 +85,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="Template version to package.",
     )
     package_parser.add_argument(
+        "--output-dir",
+        default="dist/templates",
+        help="Directory where packaged template artifacts should be written.",
+    )
+
+    publish_parser = template_subparsers.add_parser(
+        "publish",
+        help="Package and publish a Forge template to Nexus raw-hosted.",
+    )
+    publish_parser.add_argument("template", help="Template name to publish.")
+    publish_parser.add_argument(
+        "--version",
+        required=True,
+        help="Template version to publish.",
+    )
+    publish_parser.add_argument(
+        "--repository-url",
+        default=DEFAULT_NEXUS_RAW_URL,
+        help="Nexus raw-hosted repository URL.",
+    )
+    publish_parser.add_argument(
+        "--username",
+        default=os.environ.get("NEXUS_USERNAME", "admin"),
+        help="Nexus username. Defaults to NEXUS_USERNAME or admin.",
+    )
+    publish_parser.add_argument(
+        "--password",
+        default=os.environ.get("NEXUS_PASSWORD"),
+        help="Nexus password. Defaults to NEXUS_PASSWORD or prompt.",
+    )
+    publish_parser.add_argument(
         "--output-dir",
         default="dist/templates",
         help="Directory where packaged template artifacts should be written.",
@@ -174,6 +207,26 @@ def main() -> None:
         )
         print(f"Packaged template archive: {archive_path}")
         print(f"Wrote template manifest: {manifest_path}")
+        return
+
+    if args.command == "template" and args.template_command == "publish":
+        password = args.password or getpass.getpass(f"Nexus password for {args.username}: ")
+        result = publish_template(
+            template=args.template,
+            version=args.version,
+            username=args.username,
+            password=password,
+            repository_url=args.repository_url,
+            output_dir=args.output_dir,
+        )
+        print(f"Packaged template archive: {result['archive_path']}")
+        print(f"Wrote template manifest: {result['manifest_path']}")
+        print(f"Uploaded archive: {result['archive_url']}")
+        print(f"Uploaded manifest: {result['manifest_url']}")
+        print(f"Wrote NFS receipt: {result['nfs_receipt']}")
+        print(f"Wrote ingest receipt: {result['ingest_receipt']}")
+        print(f"Wrote ingest manifest: {result['ingest_manifest']}")
+        print(f"Archive SHA256: {result['archive_sha256']}")
         return
 
     parser.print_help()

@@ -210,3 +210,40 @@ def test_package_template_creates_archive_and_manifest(tmp_path):
 
     assert "python-worker/README.md.tmpl" in names
     assert "python-worker/pyproject.toml.tmpl" in names
+
+
+def test_template_artifact_url():
+    from forge.template_artifacts import template_artifact_url
+
+    url = template_artifact_url(
+        repository_url="http://nexus.example/repository/raw-hosted/",
+        template="python-worker",
+        version="0.1.0",
+        filename="python-worker-0.1.0.tar.gz",
+    )
+
+    assert url == "http://nexus.example/repository/raw-hosted/forge/templates/python-worker/0.1.0/python-worker-0.1.0.tar.gz"
+
+
+def test_template_publish_command_exists():
+    parser = build_parser()
+    args = parser.parse_args(
+        [
+            "template",
+            "publish",
+            "python-worker",
+            "--version",
+            "0.1.0",
+            "--username",
+            "admin",
+            "--password",
+            "secret",
+        ]
+    )
+
+    assert args.command == "template"
+    assert args.template_command == "publish"
+    assert args.template == "python-worker"
+    assert args.version == "0.1.0"
+    assert args.username == "admin"
+    assert args.password == "secret"
