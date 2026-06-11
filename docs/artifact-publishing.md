@@ -249,3 +249,24 @@ The generated project test passed:
 This completes the approved-template launch flow:
 
     package -> publish -> Nexus -> pull -> verify -> extract -> generate project
+
+## Forge template registry listing
+
+Forge can list approved templates published to Nexus raw-hosted.
+
+Validated command:
+
+    python -m forge.cli template list --source nexus
+
+Validated command with explicit cache status check:
+
+    python -m forge.cli template list \
+      --source nexus \
+      --cache-dir /tmp/forge-template-new-cache
+
+Validated output:
+
+    TEMPLATE        VERSION    CACHED    ARCHIVE_SHA256
+    python-worker   0.1.0      yes      0bd4ee89eeedda27c2597d694904729f84a703f2307fc29a4465564996b4b665
+
+This lets Forge show which approved templates exist before generating new projects or adding more language templates.

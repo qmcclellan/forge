@@ -287,3 +287,32 @@ Recommended next command idea:
     python -m forge.cli template list --source nexus
 
 Do not add Java/Spring/PyTorch templates until Forge can clearly show which approved templates and versions exist.
+
+## Follow-up update — Nexus template listing validated
+
+Forge now supports listing approved templates from Nexus.
+
+Validated command:
+
+    python -m forge.cli template list \
+      --source nexus \
+      --cache-dir /tmp/forge-template-new-cache
+
+Validated output:
+
+    TEMPLATE        VERSION    CACHED    ARCHIVE_SHA256
+    python-worker   0.1.0      yes      0bd4ee89eeedda27c2597d694904729f84a703f2307fc29a4465564996b4b665
+
+This gives Forge an internal template catalog.
+
+Latest validated commit:
+
+    7c7e120 Add Forge Nexus template listing
+
+Current completed flow:
+
+    template list -> package -> publish -> Nexus -> pull -> verify -> extract -> generate project
+
+Next recommended feature:
+
+    Add template metadata fields such as language, runtime, description, tags, and recommended use before adding Java/Spring/PyTorch templates.
