@@ -356,3 +356,23 @@ def test_template_list_command_exists():
     assert args.username == "admin"
     assert args.password == "secret"
     assert args.cache_dir == "/tmp/forge-cache"
+
+
+def test_package_template_includes_template_metadata(tmp_path):
+    import json
+
+    from forge.template_artifacts import package_template
+
+    archive_path, manifest_path = package_template(
+        template="python-worker",
+        version="0.1.1",
+        output_dir=str(tmp_path),
+    )
+
+    manifest = json.loads(manifest_path.read_text())
+
+    assert archive_path.exists()
+    assert manifest["metadata"]["language"] == "python"
+    assert manifest["metadata"]["runtime"] == "python-3.12"
+    assert "worker" in manifest["metadata"]["tags"]
+    assert manifest["metadata"]["recommended_use"]

@@ -70,6 +70,11 @@ def package_template(
                 }
             )
 
+    metadata_path = template_dir / "template.json"
+    metadata = {}
+    if metadata_path.exists():
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+
     manifest = {
         "template": template,
         "version": version,
@@ -77,6 +82,7 @@ def package_template(
         "archive": archive_path.name,
         "archive_sha256": sha256_file(archive_path),
         "file_count": len(files),
+        "metadata": metadata,
         "files": files,
     }
 
@@ -382,6 +388,7 @@ def list_nexus_templates(
 
         manifest = download_json(download_url, username=username, password=password)
         archive_sha256 = manifest.get("archive_sha256", "")
+        metadata = manifest.get("metadata", {}) or {}
 
         cached_template_dir = (
             Path(cache_dir).expanduser().resolve() / template / version / template
@@ -395,6 +402,11 @@ def list_nexus_templates(
                 "archive_sha256": archive_sha256,
                 "manifest_url": download_url,
                 "cached": cached,
+                "language": metadata.get("language", ""),
+                "runtime": metadata.get("runtime", ""),
+                "description": metadata.get("description", ""),
+                "recommended_use": metadata.get("recommended_use", ""),
+                "tags": ",".join(metadata.get("tags", [])),
             }
         )
 

@@ -376,12 +376,14 @@ def main() -> None:
             print("No Forge templates found.")
             return
 
-        print("TEMPLATE        VERSION    CACHED    ARCHIVE_SHA256")
+        print("TEMPLATE        VERSION    CACHED    LANGUAGE    RUNTIME       ARCHIVE_SHA256")
         for item in templates:
             print(
                 f"{item['template']:<15} "
                 f"{item['version']:<10} "
                 f"{item['cached']:<8} "
+                f"{item.get('language', ''):<11} "
+                f"{item.get('runtime', ''):<13} "
                 f"{item['archive_sha256']}"
             )
         return

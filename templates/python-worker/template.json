@@ -1,0 +1,15 @@
+{
+  "name": "python-worker",
+  "language": "python",
+  "runtime": "python-3.12",
+  "description": "A minimal Python worker service with pytest, optional Docker support, and optional Jenkins pipeline support.",
+  "tags": [
+    "python",
+    "worker",
+    "pytest",
+    "docker",
+    "jenkins",
+    "portfolio"
+  ],
+  "recommended_use": "Use for small background workers, automation jobs, ingestion helpers, CLI services, and portfolio-ready Python service scaffolds."
+}
