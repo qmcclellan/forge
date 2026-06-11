@@ -91,4 +91,4 @@ The duplicate repositories:
     maven-releases2
     maven-snapshots2
 
-should be ignored for now and deleted later only if they are confirmed empty and unused.
+were removed after confirming the standard Maven repositories already existed.
