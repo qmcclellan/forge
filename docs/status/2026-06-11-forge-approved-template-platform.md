@@ -166,3 +166,28 @@ Current approved template catalog:
     python-worker 0.1.1
     java-spring-service 0.1.1
     node-dashboard 0.1.0
+
+## Default output lanes
+
+Forge now supports default output lanes for generated projects.
+
+If --output-dir is not provided, Forge places projects by template type:
+
+    python-worker        -> /srv/workspaces/projects/portfolio/generated-projects/backend/python
+    java-spring-service  -> /srv/workspaces/projects/portfolio/generated-projects/backend/java
+    node-dashboard       -> /srv/workspaces/projects/portfolio/generated-projects/frontend/node
+
+Validated generated projects:
+
+    /srv/workspaces/projects/portfolio/generated-projects/backend/python/auto-python-worker
+    /srv/workspaces/projects/portfolio/generated-projects/backend/java/auto-java-api
+    /srv/workspaces/projects/portfolio/generated-projects/frontend/node/auto-node-dashboard
+    /srv/workspaces/projects/portfolio/generated-projects/backend/java/customer-api
+
+Manual override remains available through:
+
+    --output-dir
+
+Latest lane commit:
+
+    d8a2ad1 Add default output lanes for Forge projects
