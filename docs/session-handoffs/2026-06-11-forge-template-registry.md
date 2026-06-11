@@ -199,3 +199,40 @@ Veronica:
 - HDD/SAS HDD for cold archive, backups, and StarkGrid evidence
 
 Mellanox / 10GbE becomes useful once SSD scratch and artifact movement are heavy enough that 1GbE becomes annoying.
+
+## Follow-up update — Forge template pull validated
+
+Forge now supports pulling a published template back from Nexus.
+
+Validated command:
+
+    python -m forge.cli template pull python-worker --version 0.1.0 --cache-dir /tmp/forge-template-pull-check
+
+The command successfully:
+
+1. Downloaded the template manifest from Nexus raw-hosted.
+2. Downloaded the template archive from Nexus raw-hosted.
+3. Verified the archive SHA256 against the manifest.
+4. Extracted the template into the local template cache.
+
+Validated SHA256:
+
+    0bd4ee89eeedda27c2597d694904729f84a703f2307fc29a4465564996b4b665
+
+Validated cache path:
+
+    /tmp/forge-template-pull-check/python-worker/0.1.0/
+
+Extracted template path:
+
+    /tmp/forge-template-pull-check/python-worker/0.1.0/python-worker
+
+Completed registry loop:
+
+    package -> publish -> Nexus -> pull -> verify -> extract
+
+Next recommended feature:
+
+    forge new my-service --template python-worker --template-source nexus --template-version 0.1.0
+
+Do not add new language templates until Forge can generate a project directly from a pulled Nexus-backed template.

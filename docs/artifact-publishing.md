@@ -172,3 +172,38 @@ The archived NFS copy is stored at:
 The StarkGrid ingest-ready evidence is stored at:
 
     /mnt/veronica-nfs/ingest/devops-artifacts/
+
+## Forge template pull from Nexus
+
+Forge can pull a published template back from Nexus, verify the archive SHA256 against the manifest, and extract the template into a local cache.
+
+Pull the Python worker template:
+
+    python -m forge.cli template pull python-worker --version 0.1.0
+
+Optional explicit cache directory:
+
+    python -m forge.cli template pull python-worker --version 0.1.0 --cache-dir /tmp/forge-template-pull-check
+
+Expected output includes:
+
+    Downloaded archive
+    Downloaded manifest
+    Verified archive SHA256
+    Extracted template directory
+    Template cache directory
+
+Default cache layout:
+
+    ~/.forge/templates/python-worker/0.1.0/
+    ~/.forge/templates/python-worker/0.1.0/python-worker/
+    ~/.forge/templates/python-worker/0.1.0/python-worker-0.1.0.tar.gz
+    ~/.forge/templates/python-worker/0.1.0/python-worker-0.1.0.manifest.json
+
+Validated template archive SHA256:
+
+    0bd4ee89eeedda27c2597d694904729f84a703f2307fc29a4465564996b4b665
+
+This completes the template registry loop:
+
+    package -> publish -> Nexus -> pull -> verify -> extract
