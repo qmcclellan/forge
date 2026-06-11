@@ -362,3 +362,54 @@ Next recommended feature:
 Possible command:
 
     python -m forge.cli template info python-worker --version 0.1.1 --source nexus
+
+## Follow-up update — Template info command validated
+
+Forge now supports detailed template inspection through:
+
+    python -m forge.cli template info python-worker --version 0.1.1 --source nexus
+
+Validated output includes:
+
+    Template
+    Version
+    Language
+    Runtime
+    Cached
+    Archive SHA256
+    Description
+    Tags
+    Recommended use
+    Manifest URL
+
+Validated template:
+
+    python-worker 0.1.1
+
+Validated SHA256:
+
+    9a3f7d0515000855c2a8c1bf40e70338b368a725f5ab397b6b1f05ac3bd8f6f6
+
+Latest validated feature commit:
+
+    14e7813 Add Forge Nexus template info
+
+New runbook:
+
+    docs/template-registry-runbook.md
+
+Current complete Forge template platform flow:
+
+    metadata -> package -> publish -> list -> info -> pull -> verify -> extract -> generate project
+
+Next recommended step:
+
+    Stop adding platform plumbing for the moment and do a short Q&A / positioning pass.
+
+Possible Q&A topics:
+
+    What is Forge?
+    Why Nexus?
+    Why not just copy templates from Git?
+    What does this prove for DevOps?
+    What should be added before Java/Spring/PyTorch templates?

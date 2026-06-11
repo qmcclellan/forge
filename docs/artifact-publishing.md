@@ -305,3 +305,36 @@ Version note:
 
     python-worker 0.1.0 does not show metadata because it was published before template.json existed.
     python-worker 0.1.1 is the first metadata-backed approved template version.
+
+## Forge template info command
+
+Forge can show detailed metadata for a specific approved template version.
+
+Validated command:
+
+    python -m forge.cli template info python-worker --version 0.1.1 --source nexus
+
+Validated output included:
+
+    Template: python-worker
+    Version: 0.1.1
+    Language: python
+    Runtime: python-3.12
+    Cached: yes
+    Archive SHA256: 9a3f7d0515000855c2a8c1bf40e70338b368a725f5ab397b6b1f05ac3bd8f6f6
+    Description: A minimal Python worker service with pytest, optional Docker support, and optional Jenkins pipeline support.
+    Tags: python,worker,pytest,docker,jenkins,portfolio
+    Recommended use: Use for small background workers, automation jobs, ingestion helpers, CLI services, and portfolio-ready Python service scaffolds.
+
+This completes the catalog view:
+
+    template list = table view
+    template info = detail view
+
+Current approved-template catalog flow:
+
+    metadata -> package -> publish -> list -> info -> pull -> verify -> extract -> generate project
+
+Runbook:
+
+    docs/template-registry-runbook.md
