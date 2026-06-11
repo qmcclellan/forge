@@ -13,7 +13,7 @@
     "jenkins",
     "portfolio"
   ],
-  "recommended_use": "Use for frontend dashboards, internal admin panels, portfolio UI demos, and lightweight service dashboards that can pair with Java or Python backend services.",
+  "recommended_use": "Use for frontend dashboards, internal admin panels, portfolio UI demos, and lightweight service dashboards that can pair with Java or Python backend services. Generated projects can resolve npm dependencies through Nexus npm-public.",
   "required_files": [
     "template.json",
     "README.md.tmpl",
@@ -21,7 +21,8 @@
     "index.html.tmpl",
     "src/App.jsx.tmpl",
     "src/main.jsx.tmpl",
-    "src/styles.css.tmpl"
+    "src/styles.css.tmpl",
+    ".npmrc.tmpl"
   ],
   "optional_files": [
     "Dockerfile.tmpl",
