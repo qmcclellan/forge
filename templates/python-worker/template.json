@@ -11,5 +11,23 @@
     "jenkins",
     "portfolio"
   ],
-  "recommended_use": "Use for small background workers, automation jobs, ingestion helpers, CLI services, and portfolio-ready Python service scaffolds."
+  "recommended_use": "Use for small background workers, automation jobs, ingestion helpers, CLI services, and portfolio-ready Python service scaffolds.",
+  "required_files": [
+    "template.json",
+    "README.md.tmpl",
+    "pyproject.toml.tmpl",
+    "src/__package__/__init__.py.tmpl",
+    "src/__package__/main.py.tmpl",
+    "tests/test_smoke.py.tmpl"
+  ],
+  "optional_files": [
+    "Dockerfile.tmpl",
+    "docker-compose.yml.tmpl",
+    "Jenkinsfile.tmpl"
+  ],
+  "smoke_test_command": [
+    "python",
+    "-m",
+    "pytest"
+  ]
 }

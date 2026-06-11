@@ -445,20 +445,23 @@ REQUIRED_TEMPLATE_METADATA_FIELDS = {
 }
 
 
-REQUIRED_TEMPLATE_FILES = {
+DEFAULT_REQUIRED_TEMPLATE_FILES = {
     "template.json",
     "README.md.tmpl",
-    "pyproject.toml.tmpl",
-    "src/__package__/__init__.py.tmpl",
-    "src/__package__/main.py.tmpl",
-    "tests/test_smoke.py.tmpl",
+}
+
+
+DEFAULT_OPTIONAL_TEMPLATE_FILES = {
+    "Dockerfile.tmpl",
+    "docker-compose.yml.tmpl",
+    "Jenkinsfile.tmpl",
 }
 
 
 def validate_template_structure(
     template: str,
     template_dir: str | None = None,
-) -> dict[str, list[str]]:
+) -> dict:
     repo_root = Path(__file__).resolve().parent.parent
 
     if template_dir:
@@ -468,13 +471,13 @@ def validate_template_structure(
 
     errors: list[str] = []
     warnings: list[str] = []
+    metadata = {}
 
     if not root.exists():
         errors.append(f"Template directory does not exist: {root}")
-        return {"errors": errors, "warnings": warnings}
+        return {"errors": errors, "warnings": warnings, "metadata": metadata}
 
     metadata_path = root / "template.json"
-    metadata = {}
 
     if not metadata_path.exists():
         errors.append("Missing required metadata file: template.json")
@@ -495,23 +498,34 @@ def validate_template_structure(
     if tags is not None and not isinstance(tags, list):
         errors.append("template.json field must be a list: tags")
 
+    required_files = metadata.get("required_files", sorted(DEFAULT_REQUIRED_TEMPLATE_FILES))
+    optional_files = metadata.get("optional_files", sorted(DEFAULT_OPTIONAL_TEMPLATE_FILES))
+
+    if not isinstance(required_files, list):
+        errors.append("template.json field must be a list: required_files")
+        required_files = sorted(DEFAULT_REQUIRED_TEMPLATE_FILES)
+
+    if not isinstance(optional_files, list):
+        errors.append("template.json field must be a list: optional_files")
+        optional_files = sorted(DEFAULT_OPTIONAL_TEMPLATE_FILES)
+
+    smoke_test_command = metadata.get("smoke_test_command")
+    if smoke_test_command is not None and not isinstance(smoke_test_command, list):
+        errors.append("template.json field must be a list: smoke_test_command")
+
     existing_files = {
         str(path.relative_to(root))
         for path in root.rglob("*")
         if path.is_file()
     }
 
-    for required in sorted(REQUIRED_TEMPLATE_FILES):
+    for required in sorted(required_files):
         if required not in existing_files:
             errors.append(f"Missing required template file: {required}")
 
-    if "Dockerfile.tmpl" not in existing_files:
-        warnings.append("Optional Dockerfile.tmpl not found")
+    for optional in sorted(optional_files):
+        if optional not in existing_files:
+            warnings.append(f"Optional template file not found: {optional}")
 
-    if "docker-compose.yml.tmpl" not in existing_files:
-        warnings.append("Optional docker-compose.yml.tmpl not found")
+    return {"errors": errors, "warnings": warnings, "metadata": metadata}
 
-    if "Jenkinsfile.tmpl" not in existing_files:
-        warnings.append("Optional Jenkinsfile.tmpl not found")
-
-    return {"errors": errors, "warnings": warnings}

@@ -494,8 +494,11 @@ def main() -> None:
                     template_dir_override=args.template_dir,
                 )
 
+                metadata = result.get("metadata", {})
+                smoke_command = metadata.get("smoke_test_command", ["python", "-m", "pytest"])
+
                 subprocess.run(
-                    ["python", "-m", "pytest"],
+                    smoke_command,
                     cwd=target,
                     check=True,
                     stdout=subprocess.PIPE,
