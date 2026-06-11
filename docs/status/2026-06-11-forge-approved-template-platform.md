@@ -27,7 +27,7 @@ It currently supports:
 
 ## Next Nexus expansion
 
-Add Maven repositories:
+Use the existing Maven repositories:
 
 - maven-central proxy
 - maven-releases hosted
@@ -69,7 +69,26 @@ Do not add PyTorch yet.
 
 Next best platform work:
 
-1. Add Maven proxy/hosted/group repositories in Nexus.
+1. Use the existing Maven proxy/hosted/group repositories in Nexus.
 2. Configure Java template Maven settings for Nexus.
 3. Let Jenkins build Java projects and publish JARs to Nexus.
 4. Add node-dashboard later through the same approved-template gate.
+
+
+## Maven repository note
+
+Nexus already has the standard Maven repositories available:
+
+    maven-central
+    maven-public
+    maven-releases
+    maven-snapshots
+
+Use maven-public as the main Maven URL for generated Java projects and Jenkins builds.
+
+The duplicate repositories:
+
+    maven-releases2
+    maven-snapshots2
+
+should be ignored for now and deleted later only if they are confirmed empty and unused.
