@@ -274,3 +274,60 @@ def test_template_pull_command_exists():
     assert args.username == "admin"
     assert args.password == "secret"
     assert args.cache_dir == "/tmp/forge-cache"
+
+
+
+def test_create_project_with_template_dir_override(tmp_path):
+    import shutil
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parent.parent
+    source_template = repo_root / "templates" / "python-worker"
+    copied_template = tmp_path / "copied-python-worker-template"
+
+    shutil.copytree(source_template, copied_template)
+
+    target = create_project(
+        name="override-worker",
+        template="python-worker",
+        output_dir=str(tmp_path),
+        description="A project from an override template dir.",
+        template_dir_override=str(copied_template),
+    )
+
+    assert target.exists()
+    assert (target / "README.md").exists()
+    assert (target / "pyproject.toml").exists()
+    assert (target / "src" / "override_worker" / "__init__.py").exists()
+    assert not (target / "Dockerfile").exists()
+    assert not (target / "Jenkinsfile").exists()
+
+def test_new_command_accepts_nexus_template_source():
+    parser = build_parser()
+    args = parser.parse_args(
+        [
+            "new",
+            "nexus-worker",
+            "--template",
+            "python-worker",
+            "--template-source",
+            "nexus",
+            "--template-version",
+            "0.1.0",
+            "--template-cache-dir",
+            "/tmp/forge-cache",
+            "--username",
+            "admin",
+            "--password",
+            "secret",
+        ]
+    )
+
+    assert args.command == "new"
+    assert args.name == "nexus-worker"
+    assert args.template == "python-worker"
+    assert args.template_source == "nexus"
+    assert args.template_version == "0.1.0"
+    assert args.template_cache_dir == "/tmp/forge-cache"
+    assert args.username == "admin"
+    assert args.password == "secret"

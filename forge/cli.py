@@ -67,6 +67,37 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Set the generated Git repository origin remote URL. Requires --git-init.",
     )
+    new_parser.add_argument(
+        "--template-source",
+        choices=["local", "nexus"],
+        default="local",
+        help="Template source to use. Defaults to local repo templates.",
+    )
+    new_parser.add_argument(
+        "--template-version",
+        default=None,
+        help="Template version to use when --template-source nexus is selected.",
+    )
+    new_parser.add_argument(
+        "--template-cache-dir",
+        default="~/.forge/templates",
+        help="Local template cache directory for Nexus-backed templates.",
+    )
+    new_parser.add_argument(
+        "--repository-url",
+        default=DEFAULT_NEXUS_RAW_URL,
+        help="Nexus raw-hosted repository URL for Nexus-backed templates.",
+    )
+    new_parser.add_argument(
+        "--username",
+        default=os.environ.get("NEXUS_USERNAME", "admin"),
+        help="Nexus username for Nexus-backed templates.",
+    )
+    new_parser.add_argument(
+        "--password",
+        default=os.environ.get("NEXUS_PASSWORD"),
+        help="Nexus password for Nexus-backed templates. Defaults to NEXUS_PASSWORD or prompt.",
+    )
 
     template_parser = subparsers.add_parser(
         "template",
@@ -164,6 +195,7 @@ def create_project(
     with_docker: bool = False,
     with_jenkins: bool = False,
     remote_url: str | None = None,
+    template_dir_override: str | None = None,
 ) -> Path:
     project_slug = slugify(name)
     package_name = package_name_from_slug(project_slug)
@@ -173,8 +205,11 @@ def create_project(
     if target.exists():
         raise FileExistsError(f"Target already exists: {target}")
 
-    repo_root = Path(__file__).resolve().parent.parent
-    template_dir = repo_root / "templates" / template
+    if template_dir_override:
+        template_dir = Path(template_dir_override).expanduser().resolve()
+    else:
+        repo_root = Path(__file__).resolve().parent.parent
+        template_dir = repo_root / "templates" / template
 
     if not template_dir.exists():
         raise FileNotFoundError(f"Template does not exist: {template}")
@@ -217,6 +252,25 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "new":
+        template_dir_override = None
+
+        if args.template_source == "nexus":
+            if not args.template_version:
+                raise ValueError("--template-version is required when --template-source nexus is selected")
+
+            password = args.password or getpass.getpass(f"Nexus password for {args.username}: ")
+            pulled = pull_template(
+                template=args.template,
+                version=args.template_version,
+                username=args.username,
+                password=password,
+                repository_url=args.repository_url,
+                cache_dir=args.template_cache_dir,
+            )
+            template_dir_override = pulled["template_dir"]
+            print(f"Using Nexus template: {template_dir_override}")
+            print(f"Verified template SHA256: {pulled['archive_sha256']}")
+
         target = create_project(
             name=args.name,
             template=args.template,
@@ -226,6 +280,7 @@ def main() -> None:
             with_docker=args.with_docker,
             with_jenkins=args.with_jenkins,
             remote_url=args.remote_url,
+            template_dir_override=template_dir_override,
         )
         print(f"Created project: {target}")
         return
