@@ -6,7 +6,7 @@ from pathlib import Path
 
 from forge.git_ops import add_remote_origin, run_git_init
 from forge.renderer import render_template_dir
-from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, package_template, publish_template
+from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, package_template, publish_template, pull_template
 
 
 def slugify(value: str) -> str:
@@ -121,6 +121,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="Directory where packaged template artifacts should be written.",
     )
 
+    pull_parser = template_subparsers.add_parser(
+        "pull",
+        help="Pull and verify a Forge template from Nexus raw-hosted.",
+    )
+    pull_parser.add_argument("template", help="Template name to pull.")
+    pull_parser.add_argument(
+        "--version",
+        required=True,
+        help="Template version to pull.",
+    )
+    pull_parser.add_argument(
+        "--repository-url",
+        default=DEFAULT_NEXUS_RAW_URL,
+        help="Nexus raw-hosted repository URL.",
+    )
+    pull_parser.add_argument(
+        "--username",
+        default=os.environ.get("NEXUS_USERNAME", "admin"),
+        help="Nexus username. Defaults to NEXUS_USERNAME or admin.",
+    )
+    pull_parser.add_argument(
+        "--password",
+        default=os.environ.get("NEXUS_PASSWORD"),
+        help="Nexus password. Defaults to NEXUS_PASSWORD or prompt.",
+    )
+    pull_parser.add_argument(
+        "--cache-dir",
+        default="~/.forge/templates",
+        help="Local template cache directory.",
+    )
+
     return parser
 
 
@@ -227,6 +258,23 @@ def main() -> None:
         print(f"Wrote ingest receipt: {result['ingest_receipt']}")
         print(f"Wrote ingest manifest: {result['ingest_manifest']}")
         print(f"Archive SHA256: {result['archive_sha256']}")
+        return
+
+    if args.command == "template" and args.template_command == "pull":
+        password = args.password or getpass.getpass(f"Nexus password for {args.username}: ")
+        result = pull_template(
+            template=args.template,
+            version=args.version,
+            username=args.username,
+            password=password,
+            repository_url=args.repository_url,
+            cache_dir=args.cache_dir,
+        )
+        print(f"Downloaded archive: {result['archive_path']}")
+        print(f"Downloaded manifest: {result['manifest_path']}")
+        print(f"Verified archive SHA256: {result['archive_sha256']}")
+        print(f"Extracted template directory: {result['template_dir']}")
+        print(f"Template cache directory: {result['cache_dir']}")
         return
 
     parser.print_help()

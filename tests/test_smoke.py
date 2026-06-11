@@ -247,3 +247,30 @@ def test_template_publish_command_exists():
     assert args.version == "0.1.0"
     assert args.username == "admin"
     assert args.password == "secret"
+
+
+def test_template_pull_command_exists():
+    parser = build_parser()
+    args = parser.parse_args(
+        [
+            "template",
+            "pull",
+            "python-worker",
+            "--version",
+            "0.1.0",
+            "--username",
+            "admin",
+            "--password",
+            "secret",
+            "--cache-dir",
+            "/tmp/forge-cache",
+        ]
+    )
+
+    assert args.command == "template"
+    assert args.template_command == "pull"
+    assert args.template == "python-worker"
+    assert args.version == "0.1.0"
+    assert args.username == "admin"
+    assert args.password == "secret"
+    assert args.cache_dir == "/tmp/forge-cache"

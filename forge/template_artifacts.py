@@ -1,6 +1,6 @@
 import base64
-import hashlib
 import gzip
+import hashlib
 import json
 import shutil
 import tarfile
@@ -12,6 +12,7 @@ from pathlib import Path
 DEFAULT_NEXUS_RAW_URL = "http://192.168.1.107:8082/repository/raw-hosted"
 DEFAULT_NFS_BASE = "/mnt/veronica-nfs/devops/nexus/artifacts"
 DEFAULT_INGEST_DIR = "/mnt/veronica-nfs/ingest/devops-artifacts"
+DEFAULT_TEMPLATE_CACHE = "~/.forge/templates"
 
 
 def sha256_file(path: Path) -> str:
@@ -94,20 +95,23 @@ def template_artifact_url(
     return f"{base}/forge/templates/{template}/{version}/{filename}"
 
 
+def basic_auth_header(username: str, password: str) -> str:
+    token = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("ascii")
+    return f"Basic {token}"
+
+
 def upload_file(
     path: Path,
     url: str,
     username: str,
     password: str,
 ) -> None:
-    token = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("ascii")
-
     request = urllib.request.Request(
         url=url,
         data=path.read_bytes(),
         method="PUT",
         headers={
-            "Authorization": f"Basic {token}",
+            "Authorization": basic_auth_header(username, password),
             "Content-Type": "application/octet-stream",
         },
     )
@@ -115,6 +119,38 @@ def upload_file(
     with urllib.request.urlopen(request, timeout=60) as response:
         if response.status not in {200, 201, 204}:
             raise RuntimeError(f"Upload failed for {url}: HTTP {response.status}")
+
+
+def download_file(
+    url: str,
+    target_path: Path,
+    username: str | None = None,
+    password: str | None = None,
+) -> None:
+    headers = {}
+    if username and password:
+        headers["Authorization"] = basic_auth_header(username, password)
+
+    request = urllib.request.Request(url=url, method="GET", headers=headers)
+
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with urllib.request.urlopen(request, timeout=60) as response:
+        if response.status != 200:
+            raise RuntimeError(f"Download failed for {url}: HTTP {response.status}")
+        target_path.write_bytes(response.read())
+
+
+def safe_extract_tar(archive_path: Path, target_dir: Path) -> None:
+    target_root = target_dir.resolve()
+
+    with tarfile.open(archive_path, "r:gz") as archive:
+        for member in archive.getmembers():
+            member_path = (target_dir / member.name).resolve()
+            if not str(member_path).startswith(str(target_root)):
+                raise ValueError(f"Unsafe archive member path: {member.name}")
+
+        archive.extractall(target_dir)
 
 
 def publish_template(
@@ -193,4 +229,69 @@ def publish_template(
         "ingest_receipt": str(ingest_receipt),
         "ingest_manifest": str(ingest_manifest),
         "archive_sha256": archive_sha256,
+    }
+
+
+def pull_template(
+    template: str,
+    version: str,
+    username: str | None = None,
+    password: str | None = None,
+    repository_url: str = DEFAULT_NEXUS_RAW_URL,
+    cache_dir: str = DEFAULT_TEMPLATE_CACHE,
+) -> dict[str, str]:
+    cache_root = Path(cache_dir).expanduser().resolve()
+    template_cache = cache_root / template / version
+    template_cache.mkdir(parents=True, exist_ok=True)
+
+    archive_name = f"{template}-{version}.tar.gz"
+    manifest_name = f"{template}-{version}.manifest.json"
+
+    archive_path = template_cache / archive_name
+    manifest_path = template_cache / manifest_name
+
+    archive_url = template_artifact_url(
+        repository_url=repository_url,
+        template=template,
+        version=version,
+        filename=archive_name,
+    )
+    manifest_url = template_artifact_url(
+        repository_url=repository_url,
+        template=template,
+        version=version,
+        filename=manifest_name,
+    )
+
+    download_file(manifest_url, manifest_path, username=username, password=password)
+    download_file(archive_url, archive_path, username=username, password=password)
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    expected_sha = manifest["archive_sha256"]
+    actual_sha = sha256_file(archive_path)
+
+    if actual_sha != expected_sha:
+        raise ValueError(
+            f"Archive SHA256 mismatch: expected {expected_sha}, got {actual_sha}"
+        )
+
+    extracted_template_dir = template_cache / template
+    if extracted_template_dir.exists():
+        shutil.rmtree(extracted_template_dir)
+
+    safe_extract_tar(archive_path, template_cache)
+
+    if not extracted_template_dir.exists():
+        raise FileNotFoundError(f"Expected extracted template directory missing: {extracted_template_dir}")
+
+    return {
+        "template": template,
+        "version": version,
+        "archive_path": str(archive_path),
+        "manifest_path": str(manifest_path),
+        "archive_url": archive_url,
+        "manifest_url": manifest_url,
+        "cache_dir": str(template_cache),
+        "template_dir": str(extracted_template_dir),
+        "archive_sha256": actual_sha,
     }
