@@ -12,13 +12,15 @@
     "jenkins",
     "portfolio"
   ],
-  "recommended_use": "Use for backend service scaffolds, API service demos, DevOps pipeline examples, and portfolio-ready Java service foundations.",
+  "recommended_use": "Use for backend service scaffolds, API service demos, DevOps pipeline examples, portfolio-ready Java service foundations, and Maven builds that resolve dependencies through Nexus.",
   "required_files": [
     "template.json",
     "README.md.tmpl",
     "pom.xml.tmpl",
     "src/main/java/com/example/__package__/Application.java.tmpl",
-    "src/test/java/com/example/__package__/ApplicationSmokeTest.java.tmpl"
+    "src/test/java/com/example/__package__/ApplicationSmokeTest.java.tmpl",
+    ".mvn/maven.config.tmpl",
+    ".mvn/settings.xml.tmpl"
   ],
   "optional_files": [
     "Dockerfile.tmpl",
