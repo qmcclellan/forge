@@ -1,6 +1,10 @@
 # Forge
 
-Forge is a local project scaffolding CLI for Friday.
+Forge is a CLI-first developer-platform tool for creating standardized project lanes with test scaffolding, documentation, Docker/Jenkins readiness, metadata receipts, local environment checks, and project inspection.
+
+## What this demonstrates
+
+Forge demonstrates CLI-first internal developer tooling, repeatable scaffolding, test-backed automation, Docker/Jenkins readiness, Git workflow automation, local environment validation, and public-safe project documentation.
 
 It creates new projects from templates and standardizes:
 
@@ -20,6 +24,13 @@ Reduce project startup friction and make every new project production-style from
 Forge is intended for portfolio projects, internal tooling, and future Friday/Coder workspace workflows.
 
 ## Current Features
+
+- forge doctor
+- forge project inspect <path>
+- generated .forge/project.json metadata receipts
+- Java Spring service template
+- Node dashboard template
+- Nexus-backed template package/publish/pull workflow
 
 - `python-worker` template rendering
 - generated README
@@ -59,7 +70,7 @@ Forge is intended for portfolio projects, internal tooling, and future Friday/Co
 
 Expected:
 
-    8 passed
+    28 passed
 
 ## Generated Python Worker Usage
 
