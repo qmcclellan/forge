@@ -6,6 +6,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from forge.doctor import doctor_json, doctor_text
 from forge.git_ops import add_remote_origin, run_git_init
 from forge.project_metadata import write_project_metadata
 from forge.project_inspector import inspect_project_json
@@ -38,6 +39,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     subparsers = parser.add_subparsers(dest="command")
+
+    doctor_parser = subparsers.add_parser(
+        "doctor",
+        help="Check local Forge development prerequisites.",
+    )
+    doctor_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print doctor results as JSON.",
+    )
 
     new_parser = subparsers.add_parser(
         "new",
@@ -384,6 +395,10 @@ def create_project(
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
+
+    if args.command == "doctor":
+        print(doctor_json() if args.json else doctor_text())
+        return
 
     if args.command == "new":
         template_dir_override = None

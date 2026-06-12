@@ -586,3 +586,39 @@ def test_project_inspect_command_exists():
     assert args.command == "project"
     assert args.project_command == "inspect"
     assert args.path == "."
+
+
+def test_doctor_runs_and_reports_required_checks():
+    from forge.doctor import run_doctor
+
+    result = run_doctor()
+
+    assert "ok" in result
+    assert "checks" in result
+    assert "python" in result["checks"]
+    assert "git" in result["checks"]
+    assert "docker" in result["checks"]
+    assert "cwd_writable" in result["checks"]
+    assert "templates" in result["checks"]
+    assert "nexus" in result["checks"]
+
+    assert result["checks"]["python"]["required"] is True
+    assert result["checks"]["git"]["required"] is True
+    assert result["checks"]["docker"]["required"] is False
+    assert result["checks"]["nexus"]["status"] == "skip"
+
+
+def test_doctor_command_exists():
+    parser = build_parser()
+    args = parser.parse_args(["doctor"])
+
+    assert args.command == "doctor"
+    assert args.json is False
+
+
+def test_doctor_json_flag_exists():
+    parser = build_parser()
+    args = parser.parse_args(["doctor", "--json"])
+
+    assert args.command == "doctor"
+    assert args.json is True
