@@ -9,4 +9,5 @@ dependencies = []
 forge = "forge.cli:main"
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["tests"]
