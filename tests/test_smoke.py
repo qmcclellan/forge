@@ -525,3 +525,64 @@ def test_create_project_metadata_tracks_git_and_remote_without_storing_remote_ur
     assert payload["git_initialized"] is True
     assert payload["remote_configured"] is True
     assert remote_url not in metadata_path.read_text()
+
+
+def test_project_inspect_detects_expected_generated_files(tmp_path):
+    from forge.project_inspector import inspect_project
+
+    target = create_project(
+        name="inspect-worker",
+        template="python-worker",
+        output_dir=str(tmp_path),
+        description="A worker for inspect testing.",
+        with_docker=True,
+        with_jenkins=True,
+        git_init=True,
+        remote_url="git@github.com:example/inspect-worker.git",
+    )
+
+    result = inspect_project(target)
+    checks = result["checks"]
+
+    assert checks["readme"] is True
+    assert checks["runbook"] is True
+    assert checks["interview_talk_track"] is True
+    assert checks["tests"] is True
+    assert checks["pyproject"] is True
+    assert checks["dockerfile"] is True
+    assert checks["docker_compose"] is True
+    assert checks["jenkinsfile"] is True
+    assert checks["git_repo"] is True
+    assert checks["git_remote"] is True
+    assert checks["forge_metadata"] is True
+
+
+def test_project_inspect_handles_missing_files_without_crashing(tmp_path):
+    from forge.project_inspector import inspect_project
+
+    empty_project = tmp_path / "empty-project"
+    empty_project.mkdir()
+
+    result = inspect_project(empty_project)
+    checks = result["checks"]
+
+    assert checks["readme"] is False
+    assert checks["runbook"] is False
+    assert checks["interview_talk_track"] is False
+    assert checks["tests"] is False
+    assert checks["pyproject"] is False
+    assert checks["dockerfile"] is False
+    assert checks["docker_compose"] is False
+    assert checks["jenkinsfile"] is False
+    assert checks["git_repo"] is False
+    assert checks["git_remote"] is False
+    assert checks["forge_metadata"] is False
+
+
+def test_project_inspect_command_exists():
+    parser = build_parser()
+    args = parser.parse_args(["project", "inspect", "."])
+
+    assert args.command == "project"
+    assert args.project_command == "inspect"
+    assert args.path == "."

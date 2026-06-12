@@ -8,6 +8,7 @@ from pathlib import Path
 
 from forge.git_ops import add_remote_origin, run_git_init
 from forge.project_metadata import write_project_metadata
+from forge.project_inspector import inspect_project_json
 from forge.renderer import render_template_dir
 from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, package_template, publish_template, pull_template, list_nexus_templates, get_nexus_template_info, validate_template_structure
 
@@ -113,6 +114,18 @@ def build_parser() -> argparse.ArgumentParser:
         default=os.environ.get("NEXUS_PASSWORD"),
         help="Nexus password for Nexus-backed templates. Defaults to NEXUS_PASSWORD or prompt.",
     )
+
+    project_parser = subparsers.add_parser(
+        "project",
+        help="Inspect Forge-generated projects.",
+    )
+    project_subparsers = project_parser.add_subparsers(dest="project_command")
+
+    inspect_parser = project_subparsers.add_parser(
+        "inspect",
+        help="Inspect a generated project for Forge receipts and common project files.",
+    )
+    inspect_parser.add_argument("path", help="Project path to inspect.")
 
     template_parser = subparsers.add_parser(
         "template",
@@ -404,6 +417,10 @@ def main() -> None:
             template_dir_override=template_dir_override,
         )
         print(f"Created project: {target}")
+        return
+
+    if args.command == "project" and args.project_command == "inspect":
+        print(inspect_project_json(args.path))
         return
 
     if args.command == "template" and args.template_command == "package":
