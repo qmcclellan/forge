@@ -35,9 +35,6 @@ Run:
       --template python-worker \
       --output-dir /tmp/forge-test \
       --description "A generated worker used to test Forge."
-      - `.forge/project.json` metadata receipts
-      - `forge doctor`
-      - `forge project inspect <path>`
 
 Expected files:
 
@@ -170,4 +167,7 @@ Forge currently has:
 - optional Jenkins scaffolding
 - pytest smoke coverage
 - private Gitea remote under `portfolio/forge`
+- `.forge/project.json` metadata receipts
+- `forge doctor`
+- `forge project inspect <path>`
 
