@@ -24,7 +24,7 @@ Run:
 
 Expected result:
 
-    8 passed
+    28 passed
 
 ## Basic CLI Smoke Test
 
@@ -35,6 +35,9 @@ Run:
       --template python-worker \
       --output-dir /tmp/forge-test \
       --description "A generated worker used to test Forge."
+      - `.forge/project.json` metadata receipts
+      - `forge doctor`
+      - `forge project inspect <path>`
 
 Expected files:
 
@@ -51,6 +54,27 @@ Optional generated project package smoke test:
     python -m pip install -e ".[dev]"
     python -m pytest
     python -m hello_worker.main
+
+Inspect generated project:
+
+    forge project inspect /tmp/forge-test/hello-worker
+    cat /tmp/forge-test/hello-worker/.forge/project.json
+
+
+    
+## Doctor Smoke Test
+
+Run:
+
+    forge doctor
+    forge doctor --json
+
+Expected:
+
+    required checks report ok
+    Nexus reports skip unless configured
+
+
 
 ## Git Init Smoke Test
 
@@ -146,3 +170,4 @@ Forge currently has:
 - optional Jenkins scaffolding
 - pytest smoke coverage
 - private Gitea remote under `portfolio/forge`
+
