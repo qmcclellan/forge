@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Forge is a local project scaffolding CLI for Friday.
+Forge is a CLI-first developer-platform tool for creating standardized project lanes.
 
 It creates new projects from reusable templates and can optionally add Git, Docker, and Jenkins scaffolding.
 
@@ -10,7 +10,7 @@ It creates new projects from reusable templates and can optionally add Git, Dock
 
 Run:
 
-    cd ./generated-projects/forge
+    cd forge
     python3 -m venv .venv
     source .venv/bin/activate
     python -m pip install --upgrade pip
