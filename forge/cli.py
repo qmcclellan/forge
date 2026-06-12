@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 
 from forge.git_ops import add_remote_origin, run_git_init
+from forge.project_metadata import write_project_metadata
 from forge.renderer import render_template_dir
 from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, package_template, publish_template, pull_template, list_nexus_templates, get_nexus_template_info, validate_template_structure
 
@@ -353,6 +354,16 @@ def create_project(
 
     if remote_url:
         add_remote_origin(target, remote_url)
+
+    write_project_metadata(
+        project_dir=target,
+        project_name=project_slug,
+        template_name=template,
+        docker_enabled=with_docker,
+        jenkins_enabled=with_jenkins,
+        git_initialized=git_init,
+        remote_configured=remote_url is not None,
+    )
 
     return target
 

@@ -463,3 +463,65 @@ def test_validate_template_command_exists():
     assert args.template_command == "validate"
     assert args.template == "python-worker"
     assert args.skip_smoke is True
+
+
+def test_create_project_writes_forge_metadata(tmp_path):
+    import json
+
+    target = create_project(
+        name="metadata-worker",
+        template="python-worker",
+        output_dir=str(tmp_path),
+        description="A worker with Forge metadata.",
+        with_docker=True,
+        with_jenkins=True,
+    )
+
+    metadata_path = target / ".forge" / "project.json"
+
+    assert metadata_path.exists()
+
+    payload = json.loads(metadata_path.read_text())
+
+    assert payload["project_name"] == "metadata-worker"
+    assert payload["template_name"] == "python-worker"
+    assert payload["docker_enabled"] is True
+    assert payload["jenkins_enabled"] is True
+    assert payload["git_initialized"] is False
+    assert payload["remote_configured"] is False
+    assert payload["forge_version"]
+    assert payload["created_at"].endswith("Z")
+
+    serialized = metadata_path.read_text().lower()
+
+    forbidden_values = [
+        "/srv/workspaces",
+        "192.168.",
+        "secret",
+        "token",
+    ]
+
+    for value in forbidden_values:
+        assert value not in serialized
+
+
+def test_create_project_metadata_tracks_git_and_remote_without_storing_remote_url(tmp_path):
+    import json
+
+    remote_url = "git@github.com:example/metadata-remote-worker.git"
+
+    target = create_project(
+        name="metadata-remote-worker",
+        template="python-worker",
+        output_dir=str(tmp_path),
+        description="A worker with Git metadata.",
+        git_init=True,
+        remote_url=remote_url,
+    )
+
+    metadata_path = target / ".forge" / "project.json"
+    payload = json.loads(metadata_path.read_text())
+
+    assert payload["git_initialized"] is True
+    assert payload["remote_configured"] is True
+    assert remote_url not in metadata_path.read_text()
