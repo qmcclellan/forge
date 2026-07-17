@@ -1,0 +1,34 @@
+{
+  "name": "node-api",
+  "language": "node",
+  "runtime": "node-20",
+  "description": "A minimal Node.js HTTP API scaffold with a health endpoint, no runtime dependencies, Docker support, and Jenkins pipeline support.",
+  "tags": [
+    "node",
+    "api",
+    "http",
+    "backend",
+    "docker",
+    "jenkins",
+    "portfolio"
+  ],
+  "recommended_use": "Use for lightweight backend APIs, health-checked microservices, and portfolio-ready Node.js service scaffolds that can pair with the node-dashboard frontend template. Generated projects can resolve npm dependencies through Nexus npm-public.",
+  "required_files": [
+    "template.json",
+    "README.md.tmpl",
+    "package.json.tmpl",
+    "src/server.js.tmpl",
+    "test/health.test.js.tmpl",
+    ".npmrc.tmpl"
+  ],
+  "optional_files": [
+    "Dockerfile.tmpl",
+    "docker-compose.yml.tmpl",
+    "Jenkinsfile.tmpl"
+  ],
+  "smoke_test_command": [
+    "bash",
+    "-lc",
+    "test -f package.json && test -f src/server.js && grep -q 'createServer' src/server.js && grep -q '/health' src/server.js"
+  ]
+}

@@ -1,0 +1,18 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Validate') {
+            steps {
+                sh 'test -f pom.xml'
+                sh 'test -f src/main/java/com/example/{{ package_name }}/BatchJob.java'
+            }
+        }
+
+        stage('Package Metadata') {
+            steps {
+                echo 'Forge Java batch job scaffold validated: {{ project_slug }}'
+            }
+        }
+    }
+}

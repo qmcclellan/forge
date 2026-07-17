@@ -1,0 +1,35 @@
+{
+  "name": "java-batch-job",
+  "language": "java",
+  "runtime": "java-21",
+  "description": "A minimal standalone Java batch job scaffold with Maven layout, console entrypoint, Docker support, and Jenkins pipeline support.",
+  "tags": [
+    "java",
+    "batch",
+    "cli",
+    "maven",
+    "docker",
+    "jenkins",
+    "portfolio"
+  ],
+  "recommended_use": "Use for offline batch jobs, data-processing scripts, scheduled console utilities, and portfolio-ready Java command-line scaffolds that run without a web server. Maven builds resolve dependencies through Nexus.",
+  "required_files": [
+    "template.json",
+    "README.md.tmpl",
+    "pom.xml.tmpl",
+    "src/main/java/com/example/__package__/BatchJob.java.tmpl",
+    "src/test/java/com/example/__package__/BatchJobSmokeTest.java.tmpl",
+    ".mvn/maven.config.tmpl",
+    ".mvn/settings.xml.tmpl"
+  ],
+  "optional_files": [
+    "Dockerfile.tmpl",
+    "docker-compose.yml.tmpl",
+    "Jenkinsfile.tmpl"
+  ],
+  "smoke_test_command": [
+    "bash",
+    "-lc",
+    "test -f pom.xml && test -f src/main/java/com/example/java_batch_job_validate_smoke/BatchJob.java && grep -q 'public static void main' src/main/java/com/example/java_batch_job_validate_smoke/BatchJob.java"
+  ]
+}

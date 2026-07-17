@@ -194,47 +194,60 @@ def publish_template(
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     archive_sha256 = sha256_file(archive_path)
 
-    nfs_dest = Path(nfs_base).expanduser().resolve() / "forge" / "templates" / template / version
-    ingest_dest = Path(ingest_dir).expanduser().resolve()
+    nfs_receipt: str | None = None
+    ingest_receipt: str | None = None
+    ingest_manifest: str | None = None
+    nfs_skipped_reason: str | None = None
 
-    nfs_dest.mkdir(parents=True, exist_ok=True)
-    ingest_dest.mkdir(parents=True, exist_ok=True)
+    try:
+        nfs_dest = Path(nfs_base).expanduser().resolve() / "forge" / "templates" / template / version
+        ingest_dest = Path(ingest_dir).expanduser().resolve()
 
-    shutil.copy2(archive_path, nfs_dest / archive_path.name)
-    shutil.copy2(manifest_path, nfs_dest / manifest_path.name)
+        nfs_dest.mkdir(parents=True, exist_ok=True)
+        ingest_dest.mkdir(parents=True, exist_ok=True)
 
-    receipt_path = nfs_dest / f"publish-receipt-{stamp}.txt"
-    receipt = "\n".join(
-        [
-            "Forge Template Publish Receipt",
-            f"timestamp={stamp}",
-            f"template={template}",
-            f"version={version}",
-            f"nexus_url={repository_url.rstrip('/')}/forge/templates/{template}/{version}/",
-            f"archive={archive_path.name}",
-            f"manifest={manifest_path.name}",
-            f"archive_sha256={archive_sha256}",
-            "validated=packaged,uploaded_to_nexus,nfs_archived,ingest_receipt_written",
-            "",
-        ]
-    )
-    receipt_path.write_text(receipt, encoding="utf-8")
+        shutil.copy2(archive_path, nfs_dest / archive_path.name)
+        shutil.copy2(manifest_path, nfs_dest / manifest_path.name)
 
-    ingest_receipt = ingest_dest / receipt_path.name
-    ingest_manifest = ingest_dest / f"forge-template-{template}-{version}.manifest.json"
+        receipt_path = nfs_dest / f"publish-receipt-{stamp}.txt"
+        receipt = "\n".join(
+            [
+                "Forge Template Publish Receipt",
+                f"timestamp={stamp}",
+                f"template={template}",
+                f"version={version}",
+                f"nexus_url={repository_url.rstrip('/')}/forge/templates/{template}/{version}/",
+                f"archive={archive_path.name}",
+                f"manifest={manifest_path.name}",
+                f"archive_sha256={archive_sha256}",
+                "validated=packaged,uploaded_to_nexus,nfs_archived,ingest_receipt_written",
+                "",
+            ]
+        )
+        receipt_path.write_text(receipt, encoding="utf-8")
 
-    shutil.copy2(receipt_path, ingest_receipt)
-    shutil.copy2(manifest_path, ingest_manifest)
+        ingest_receipt_path = ingest_dest / receipt_path.name
+        ingest_manifest_path = ingest_dest / f"forge-template-{template}-{version}.manifest.json"
+
+        shutil.copy2(receipt_path, ingest_receipt_path)
+        shutil.copy2(manifest_path, ingest_manifest_path)
+
+        nfs_receipt = str(receipt_path)
+        ingest_receipt = str(ingest_receipt_path)
+        ingest_manifest = str(ingest_manifest_path)
+    except OSError as error:
+        nfs_skipped_reason = f"NFS archival skipped ({nfs_base} unavailable in this environment): {error}"
 
     return {
         "archive_path": str(archive_path),
         "manifest_path": str(manifest_path),
         "archive_url": archive_url,
         "manifest_url": manifest_url,
-        "nfs_receipt": str(receipt_path),
-        "ingest_receipt": str(ingest_receipt),
-        "ingest_manifest": str(ingest_manifest),
+        "nfs_receipt": nfs_receipt,
+        "ingest_receipt": ingest_receipt,
+        "ingest_manifest": ingest_manifest,
         "archive_sha256": archive_sha256,
+        "nfs_skipped_reason": nfs_skipped_reason,
     }
 
 

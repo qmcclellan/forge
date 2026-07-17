@@ -1,0 +1,16 @@
+import pytest
+
+from {{ package_name }}.cli import main
+
+
+def test_main_defaults_to_run():
+    assert main([]) == 0
+
+
+def test_main_run_command():
+    assert main(["run"]) == 0
+
+
+def test_main_unknown_command_exits_with_error():
+    with pytest.raises(SystemExit):
+        main(["bogus"])

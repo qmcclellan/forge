@@ -1,0 +1,34 @@
+{
+  "name": "python-cli",
+  "language": "python",
+  "runtime": "python-3.12",
+  "description": "A minimal Python command-line tool scaffold with argparse subcommands, pytest, optional Docker support, and optional Jenkins pipeline support.",
+  "tags": [
+    "python",
+    "cli",
+    "argparse",
+    "pytest",
+    "docker",
+    "jenkins",
+    "portfolio"
+  ],
+  "recommended_use": "Use for command-line utilities, dev tooling, ops scripts, and portfolio-ready Python CLI scaffolds that need an installable entry point.",
+  "required_files": [
+    "template.json",
+    "README.md.tmpl",
+    "pyproject.toml.tmpl",
+    "src/__package__/__init__.py.tmpl",
+    "src/__package__/cli.py.tmpl",
+    "tests/test_cli.py.tmpl"
+  ],
+  "optional_files": [
+    "Dockerfile.tmpl",
+    "docker-compose.yml.tmpl",
+    "Jenkinsfile.tmpl"
+  ],
+  "smoke_test_command": [
+    "python",
+    "-m",
+    "pytest"
+  ]
+}

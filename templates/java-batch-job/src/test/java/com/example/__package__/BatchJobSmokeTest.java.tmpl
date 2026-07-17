@@ -1,0 +1,12 @@
+package com.example.{{ package_name }};
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class BatchJobSmokeTest {
+    @Test
+    void runProducesCompletionMessage() {
+        assertTrue(BatchJob.run().contains("completed"));
+    }
+}

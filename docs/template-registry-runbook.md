@@ -212,3 +212,142 @@ Validated generated files:
 Validated source check:
 
     grep -n "SpringApplication.run" /tmp/forge-java-service-check/java-api/src/main/java/com/example/java_api/Application.java
+
+## Approved Python CLI template
+
+Template:
+
+    python-cli
+
+Version:
+
+    0.1.0
+
+Language:
+
+    python
+
+Runtime:
+
+    python-3.12
+
+Validated archive SHA256:
+
+    d3c5de091572e46f5170600098f841bbc06102fc36d82dc97eddb9472b84808b
+
+Recommended use:
+
+    Command-line utilities, dev tooling, ops scripts, and portfolio-ready Python CLI scaffolds that need an installable entry point.
+
+Validated approved-template flow:
+
+    validate -> package -> publish -> list -> info -> pull -> generate -> verify
+
+Validated generated project:
+
+    /tmp/forge-python-cli-check/python-cli-demo
+
+Validated real run:
+
+    python -m pip install -e ".[dev]"
+    python -m pytest        # 3 passed
+    python -m python_cli_demo.cli run
+
+## Approved Java batch job template
+
+Template:
+
+    java-batch-job
+
+Version:
+
+    0.1.0
+
+Language:
+
+    java
+
+Runtime:
+
+    java-21
+
+Validated archive SHA256:
+
+    fa1632a4d50783ad9f111c944e08ecfe7687555578212a342e425fc6c86a297e
+
+Recommended use:
+
+    Offline batch jobs, data-processing scripts, scheduled console utilities, and portfolio-ready Java command-line scaffolds that run without a web server.
+
+Validated approved-template flow:
+
+    validate -> package -> publish -> list -> info -> pull -> generate -> verify
+
+Validated generated project:
+
+    /tmp/forge-java-batch-check/java-batch-demo
+
+Validated source check:
+
+    grep -n "public static void main" /tmp/forge-java-batch-check/java-batch-demo/src/main/java/com/example/java_batch_demo/BatchJob.java
+
+## Approved Node API template
+
+Template:
+
+    node-api
+
+Version:
+
+    0.1.0
+
+Language:
+
+    node
+
+Runtime:
+
+    node-20
+
+Validated archive SHA256:
+
+    8f746be922aa10ad202d0da0dc75783aeb8db4f22a2ea71c22999b744433ac12
+
+Recommended use:
+
+    Lightweight backend APIs, health-checked microservices, and portfolio-ready Node.js service scaffolds that pair with the node-dashboard frontend template.
+
+Validated approved-template flow:
+
+    validate -> package -> publish -> list -> info -> pull -> generate -> verify
+
+Validated generated project:
+
+    /tmp/forge-node-api-check/node-api-demo
+
+Validated source check:
+
+    grep -n "createServer" /tmp/forge-node-api-check/node-api-demo/src/server.js
+    grep -n "/health" /tmp/forge-node-api-check/node-api-demo/src/server.js
+
+## Nexus NFS archival note
+
+`forge template publish` also attempts to archive a copy of the packaged artifact and a publish receipt under `/mnt/veronica-nfs/devops/nexus/artifacts`. That mount is only present on hosts with the Veronica NFS share attached (for example, Friday). In environments without that mount (such as this Coder workspace), NFS archival is skipped with a `WARNING:` line, while the Nexus upload — the part that matters for template distribution — still completes and is verified independently through `template pull`.
+
+## Current template catalog
+
+    python-worker         0.1.1
+    python-cli             0.1.0
+    java-spring-service   0.1.0
+    java-batch-job        0.1.0
+    node-dashboard         (present, see 2026-06-11 session handoff)
+    node-api               0.1.0
+
+## Default output lanes
+
+    python-worker         -> backend/python
+    python-cli             -> backend/python
+    java-spring-service   -> backend/java
+    java-batch-job         -> backend/java
+    node-dashboard         -> frontend/node
+    node-api               -> backend/node

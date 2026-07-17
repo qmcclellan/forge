@@ -19,6 +19,9 @@ DEFAULT_TEMPLATE_OUTPUT_DIRS = {
     "python-worker": DEFAULT_PROJECT_ROOT / "backend" / "python",
     "java-spring-service": DEFAULT_PROJECT_ROOT / "backend" / "java",
     "node-dashboard": DEFAULT_PROJECT_ROOT / "frontend" / "node",
+    "python-cli": DEFAULT_PROJECT_ROOT / "backend" / "python",
+    "java-batch-job": DEFAULT_PROJECT_ROOT / "backend" / "java",
+    "node-api": DEFAULT_PROJECT_ROOT / "backend" / "node",
 }
 
 
@@ -462,9 +465,12 @@ def main() -> None:
         print(f"Wrote template manifest: {result['manifest_path']}")
         print(f"Uploaded archive: {result['archive_url']}")
         print(f"Uploaded manifest: {result['manifest_url']}")
-        print(f"Wrote NFS receipt: {result['nfs_receipt']}")
-        print(f"Wrote ingest receipt: {result['ingest_receipt']}")
-        print(f"Wrote ingest manifest: {result['ingest_manifest']}")
+        if result.get("nfs_skipped_reason"):
+            print(f"WARNING: {result['nfs_skipped_reason']}")
+        else:
+            print(f"Wrote NFS receipt: {result['nfs_receipt']}")
+            print(f"Wrote ingest receipt: {result['ingest_receipt']}")
+            print(f"Wrote ingest manifest: {result['ingest_manifest']}")
         print(f"Archive SHA256: {result['archive_sha256']}")
         return
 
