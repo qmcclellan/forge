@@ -268,7 +268,11 @@ def test_forge_receipt_is_truthful(rendered):
     assert receipt["template_name"] == TEMPLATE
     assert receipt["docker_enabled"] is False
     assert receipt["jenkins_enabled"] is False
-    assert receipt["project_name"] == "example-control-plane"
+    # Version-2 receipts record both identities explicitly: project_name is the
+    # human display name, project_slug is the machine/filesystem identity.
+    assert receipt["receipt_version"] == 2
+    assert receipt["project_name"] == "Example Control Plane"
+    assert receipt["project_slug"] == "example-control-plane"
     assert receipt["created_at"].endswith("Z")
 
 

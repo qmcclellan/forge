@@ -35,6 +35,37 @@ def package_name_from_slug(slug: str) -> str:
     return slug.replace("-", "_")
 
 
+SLUG_PATTERN = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?$")
+
+
+def validate_slug(slug: str) -> str:
+    """Validate an EXPLICIT --slug value and return it unchanged.
+
+    An explicit slug is never silently normalized. A caller who supplies one is
+    stating the exact directory and machine identity to use, so a value that
+    cannot be used verbatim is an error rather than something to repair.
+
+    This does not touch slugify(), which still derives the slug from the display
+    name whenever --slug is omitted.
+    """
+    if not slug:
+        raise ValueError("--slug must not be empty")
+    if any(character.isspace() for character in slug):
+        raise ValueError(f"--slug must not contain whitespace: {slug!r}")
+    if "/" in slug or "\\" in slug:
+        raise ValueError(f"--slug must not contain a path separator: {slug!r}")
+    if "." in slug:
+        raise ValueError(f"--slug must not contain a dot: {slug!r}")
+    if slug != slug.lower():
+        raise ValueError(f"--slug must be lowercase: {slug!r}")
+    if not SLUG_PATTERN.fullmatch(slug):
+        raise ValueError(
+            "--slug must contain only a-z, 0-9 and hyphen, and must begin and end "
+            f"with an alphanumeric character: {slug!r}"
+        )
+    return slug
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="forge",
@@ -58,6 +89,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Create a new project from a template.",
     )
     new_parser.add_argument("name", help="Project name to create.")
+    new_parser.add_argument(
+        "--slug",
+        default=None,
+        help=(
+            "Explicit project slug used for the generated directory and machine "
+            "identity. Defaults to a slug derived from the project name. Supply "
+            "this when the human-readable name and the repository/directory name "
+            "differ. Must be lowercase a-z, 0-9 and hyphens, beginning and ending "
+            "with an alphanumeric character; it is never silently normalized."
+        ),
+    )
     new_parser.add_argument(
         "--template",
         default="python-worker",
@@ -334,8 +376,13 @@ def create_project(
     with_jenkins: bool = False,
     remote_url: str | None = None,
     template_dir_override: str | None = None,
+    slug: str | None = None,
 ) -> Path:
-    project_slug = slugify(name)
+    # `name` is the human-readable display name and reaches templates as
+    # {{ project_name }}. The slug is the machine identity: the generated
+    # directory, {{ project_slug }}, and the package name. They are equal
+    # whenever --slug is omitted, which is the historical behavior.
+    project_slug = validate_slug(slug) if slug is not None else slugify(name)
     package_name = package_name_from_slug(project_slug)
 
     target = Path(output_dir).expanduser().resolve() / project_slug
@@ -384,7 +431,8 @@ def create_project(
 
     write_project_metadata(
         project_dir=target,
-        project_name=project_slug,
+        project_name=name,
+        project_slug=project_slug,
         template_name=template,
         docker_enabled=with_docker,
         jenkins_enabled=with_jenkins,
@@ -433,6 +481,7 @@ def main() -> None:
             with_jenkins=args.with_jenkins,
             remote_url=args.remote_url,
             template_dir_override=template_dir_override,
+            slug=args.slug,
         )
         print(f"Created project: {target}")
         return
