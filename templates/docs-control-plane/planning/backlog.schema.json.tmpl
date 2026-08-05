@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/backlog.schema.json",
+  "title": "Control-plane backlog item",
+  "description": "One JSON object per line in backlog.jsonl. Items are appended, never rewritten in place; a superseded item is closed and replaced.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "title", "bucket", "created_at", "status"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z]{2,6}-[0-9]{4}$",
+      "description": "Stable ID, never reused. Example: KS-0001."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3,
+      "description": "One line. What outcome is wanted, not how."
+    },
+    "bucket": {
+      "type": "string",
+      "enum": ["now", "next", "later", "evidence_needed"],
+      "description": "Scheduling bucket. Promotion into 'now' requires human approval."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["open", "in_progress", "done", "dropped", "superseded"]
+    },
+    "project_id": {
+      "type": ["string", "null"],
+      "description": "Owning project from PROJECTS.yaml, or null for control-plane work."
+    },
+    "milestone": {
+      "type": ["string", "null"],
+      "description": "Milestone ID from MILESTONES.md."
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Paths or URLs to evidence supporting this item."
+    },
+    "why": {
+      "type": ["string", "null"],
+      "description": "Why this matters. Required in spirit for anything reaching 'next'."
+    },
+    "blocked_by": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Backlog IDs blocking this item."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO date the item was recorded."
+    },
+    "updated_at": {
+      "type": ["string", "null"],
+      "format": "date"
+    },
+    "supersedes": {
+      "type": ["string", "null"],
+      "description": "Backlog ID this item replaces."
+    }
+  }
+}

@@ -1,0 +1,15 @@
+# Nested repositories live here and MUST keep independent Git history.
+# Ignore everything beneath workspaces/ except the directory marker itself.
+workspaces/*
+!workspaces/.gitkeep
+
+# Local editor / OS noise
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Local scratch that must never become control-plane history
+*.local
+scratch/
+tmp/

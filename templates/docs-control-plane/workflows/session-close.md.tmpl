@@ -1,0 +1,25 @@
+# Workflow — Session Close ({{ project_name }})
+
+1. **Verify repository and runtime state.** Record branch, HEAD SHA, tree state,
+   and anything restarted or left running.
+2. **Write a compact immutable handoff** into `handoffs/current/` via the Session
+   Recorder. Never a rolling transcript.
+3. **Record deferred ideas** in `planning/backlog.jsonl` via the Backlog Curator.
+   Anything discovered but not done goes here, or it is lost.
+4. **Update `NOW.md` only if milestone state changed.** Otherwise leave it alone.
+5. **Record validated convergence findings**, if any, in
+   `planning/decisions/`. Unvalidated observations go to the backlog as
+   `evidence_needed`.
+6. **State the exact next action** — a command or a decision, not a direction.
+
+## Close honestly
+
+If the objective was not met, say so and record why. A session that discovered
+its hypothesis was wrong has produced a result. Record refutations; they are the
+cheapest evidence this control plane will ever get.
+
+If something was left broken or half-done, name it in the handoff blockers.
+
+## Expected artifact
+
+`handoffs/current/<date>-<slug>.md` and, where applicable, appended backlog lines.

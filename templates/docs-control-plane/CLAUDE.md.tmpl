@@ -1,0 +1,57 @@
+# {{ project_name }} — Operating Instructions
+
+This repository is a control plane. Read this file, then `ENGINEERING-METHOD.md`,
+then `NOW.md`, before proposing work.
+
+## Required reading order
+
+1. `NOW.md` — the single active focus.
+2. `PROJECTS.yaml` — the registry: authority, branches, policies.
+3. `ENGINEERING-METHOD.md` — the method you inherit.
+4. The owning project's own instructions, fetched from **its** repository.
+5. The relevant role definition under `agents/`.
+
+Read `NOW.md` first. If it disagrees with a handoff, `NOW.md` wins.
+
+## Source of truth
+
+Each coordinated project declares its own `source_of_truth` in `PROJECTS.yaml`.
+This control plane is **never** authoritative over a coordinated project. When a
+project's own instructions conflict with anything written here, the project's
+instructions win, and the conflict is recorded in `planning/decisions/`.
+
+Mirrors are never authoritative. A repository may have several remotes; only the
+one named in `authoritative_remote` may be treated as truth.
+
+## Write boundaries
+
+- Default to read-only across all coordinated projects.
+- Never grant blanket write access merely because every project is readable.
+- A session writes to exactly one project, named in its objective.
+- Writes to a coordinated project follow **that project's** governance, not this
+  one's.
+- Never write beneath `workspaces/` from this repository's perspective; those are
+  independent repositories.
+
+## Registry discipline
+
+`PROJECTS.yaml` records only **verified** values. A project whose repository,
+path or branch has not been confirmed is registered with
+`registration_status: unverified` and is not used to route work.
+
+Record `last_verified_at` whenever a registry value is confirmed. Stale
+verification is an unknown, not a fact.
+
+## Prohibited without explicit approval
+
+- Promoting a backlog item into `now`.
+- Editing another repository's history.
+- Changing any `authoritative_remote`.
+- Deleting or rewriting a handoff.
+- Recording a finding as validated without human approval.
+
+## TODO markers
+
+Generated files contain `TODO(operator):` markers where this template cannot know
+a value. Complete them before the first working session. Do not delete a marker
+without supplying the value.

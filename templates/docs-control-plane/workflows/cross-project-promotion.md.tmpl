@@ -1,0 +1,31 @@
+# Workflow — Cross-Project Promotion ({{ project_name }})
+
+Promotion moves a finding from one project into another project's baseline. It is
+the highest-risk routine action this control plane performs.
+
+1. **Name the finding** and the project that produced it.
+2. **Locate the evidence** in the producing project. A finding with no artifact is
+   not promotable.
+3. **Confirm human approval.** Findings are promoted only by explicit human
+   approval — never by an agent's confidence.
+4. **Identify the receiving project** and read **its** governance. The receiving
+   project's rules decide how the change lands.
+5. **Classify the change** (A / B / C) in the receiving project's terms.
+6. **Verify the receiving project's state** before proposing anything.
+7. **Hand to the Delivery Governor** for the actual change, under the receiving
+   project's approval process.
+8. **Record the promotion** in `planning/decisions/`, including what evidence
+   justified it.
+
+## Refuse to promote when
+
+- The evidence lives only in a conversation.
+- The receiving project's governance has not been read.
+- The finding was validated by the same agent that produced it, with no
+  independent check.
+- Promotion would require modifying sealed or historical evidence.
+
+## Expected artifact
+
+A decision record naming: finding, producing project, receiving project,
+evidence, approver, and outcome.

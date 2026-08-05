@@ -1,0 +1,18 @@
+# Cross-project dependencies for {{ project_name }}
+#
+# Record only dependencies that have been OBSERVED, not assumed. A dependency
+# that is merely plausible belongs in the backlog as evidence_needed.
+
+dependencies_version: 1
+
+# Each edge states what breaks if the dependency is unavailable.
+edges: []
+
+# Edge contract:
+# - from:        project_id that depends
+#   to:          project_id depended upon
+#   kind:        artifact | data | schema | endpoint | governance
+#   description: what actually flows
+#   breaks_if_unavailable: what stops working
+#   verified_at: ISO date this edge was observed
+#   status:      active | suspected | retired

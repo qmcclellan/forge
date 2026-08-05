@@ -1,0 +1,61 @@
+# Project registry for {{ project_name }}
+#
+# This registry records ONLY verified values. A project whose repository, path,
+# branch or remote has not been confirmed is registered with
+# registration_status: unverified and MUST NOT be used to route work.
+#
+# This control plane is never authoritative over a coordinated project.
+
+registry_version: 1
+control_plane:
+  project_id: {{ project_slug }}
+  display_name: {{ project_name }}
+  # TODO(operator): this control plane's own authoritative remote, once created.
+  authoritative_remote: null
+  default_branch: main
+
+# Reusable access profiles. Never grant blanket write merely because every
+# project is readable.
+access_profiles:
+  read_all:
+    reads: all_registered
+    writes: none
+  cross_project_design:
+    reads: all_registered
+    writes: [{{ project_slug }}]
+  single_project_delivery:
+    reads: all_registered
+    # Exactly one project, named per session, under that project's governance.
+    writes: one_named_project
+
+projects: []
+
+# ---------------------------------------------------------------------------
+# Record contract. Copy this block per project; delete fields only when the
+# project genuinely has no such concept.
+#
+# - project_id:            stable slug, never reused
+#   display_name:          human name
+#   repository:            owner/name at the source of truth
+#   authoritative_remote:  the git REMOTE NAME that is truth (not necessarily
+#                          "origin"; a mirror may occupy that name)
+#   mirror_remotes:        [{name, url, role: mirror, authority: none,
+#                            status: reachable|unreachable, last_checked}]
+#   local_path:            checkout path, or null if not checked out
+#   authoritative_branch:  the branch work targets
+#   forbidden_branches:    branches that must never be targeted
+#   source_of_truth:       where truth lives, in the project's own words
+#   role:                  what this project does for the portfolio
+#   required_reading:      files to read in the project BEFORE proposing work
+#   read_policy:           always | on_demand | restricted
+#   write_policy:          none | approval_required | governed_by_project
+#   approval:              what class of approval a write needs
+#   companion_mcps:        read-only knowledge interfaces, never authoritative
+#   operational_endpoints: [{name, url, purpose, status}]
+#   network_dependencies:  hosts/services this project needs
+#   blocks_current_work:   true | false
+#   dirty_working_tree:    true | false  (record, never silently clean)
+#   registration_status:   verified | unverified
+#   last_verified_at:      ISO date the values above were actually checked
+#   notes:                 stale-address suspicions, divergences, caveats
+# ---------------------------------------------------------------------------

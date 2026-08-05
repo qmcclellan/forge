@@ -1,0 +1,49 @@
+# {{ project_name }}
+
+{{ description }}
+
+`{{ project_slug }}` is an engineering **control plane**. Its product is
+coordination — a project registry, decisions, evidence and handoffs. It contains
+no runtime code and ships no artifact.
+
+## What this repository is not
+
+- It does not replace, absorb or vendor any project it coordinates.
+- It does not hold copies of other repositories' source or evidence.
+- It does not execute workloads.
+
+Each coordinated project keeps its own repository, its own governance and its own
+source of truth. This repository records *where* those live and *how* work moves
+between them.
+
+## Layout
+
+| Path | Purpose |
+| --- | --- |
+| `PROJECTS.yaml` | The registry. Every coordinated project, its authority and its access policy. |
+| `NOW.md` | The single active focus. Updated only when milestone state changes. |
+| `MILESTONES.md` | Measurable outcomes, not activities. |
+| `ENGINEERING-METHOD.md` | The evidence-first method every agent inherits. |
+| `CLAUDE.md` | Operating instructions for assistants working in this repository. |
+| `agents/` | Role definitions. One file per role, each with an explicit stop condition. |
+| `workflows/` | Session start/close, idea intake, milestone review, promotion. |
+| `planning/` | Backlog (`backlog.jsonl`), its schema, dependencies, and decision records. |
+| `handoffs/` | Immutable session handoffs: `current/` then `archive/`. |
+| `projects/` | Per-project notes owned by this control plane. |
+| `workspaces/` | Where independent repositories are checked out. **Contents are ignored by Git.** |
+
+## The workspaces boundary
+
+`workspaces/` is where coordinated repositories are cloned. `.gitignore` ignores
+everything beneath it except `.gitkeep`, so each nested repository keeps its own
+independent Git history and can never be committed into this one.
+
+Never `git add -f` anything under `workspaces/`.
+
+## First steps after generation
+
+1. Complete every `TODO(operator):` marker — they mark values this template
+   cannot know, such as the authoritative remote and the primary objective.
+2. Register the first project in `PROJECTS.yaml`.
+3. Write the first milestone in `MILESTONES.md`.
+4. Run `workflows/session-start.md`.

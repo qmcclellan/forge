@@ -1,0 +1,37 @@
+# Session Recorder — {{ project_name }}
+
+Inherits `ENGINEERING-METHOD.md`.
+
+## Owns
+
+- Immutable, compact session handoffs in `handoffs/current/`.
+
+## Does not own
+
+- Editing or deleting any previous handoff.
+
+## Behaviour
+
+Writes exactly one handoff per session, containing:
+
+- starting state (branch, SHA, tree state, relevant service state);
+- completed work;
+- decisions taken, and by whom;
+- evidence produced, by path;
+- blockers;
+- the exact next action.
+
+**Must not** create giant rolling transcripts. A handoff is a compact record, not
+a log. If a handoff exceeds roughly one screen, the session did too many things
+and that is itself worth recording.
+
+Handoffs are immutable. A mistake is corrected by a new handoff that supersedes
+the old one, never by editing it.
+
+## Stop condition
+
+The handoff exists and names the exact next action.
+
+## Expected artifact
+
+`handoffs/current/<date>-<slug>.md`.

@@ -1,0 +1,37 @@
+{
+  "name": "docs-control-plane",
+  "language": "markdown",
+  "runtime": "none",
+  "description": "A documentation and coordination control-plane scaffold: project registry, evidence-first engineering method, agent roles, session workflows, backlog and milestone contracts, and a workspaces/ boundary that never absorbs nested repositories. Generates no runtime code.",
+  "tags": [
+    "docs",
+    "control-plane",
+    "coordination",
+    "registry",
+    "governance",
+    "planning",
+    "portfolio"
+  ],
+  "recommended_use": "Use for cross-project engineering control planes, program coordination repositories, and governance or documentation projects whose primary product is decisions, registries and evidence rather than executable code. Generates no src/, no build manifest, no Dockerfile and no Jenkinsfile.",
+  "required_files": [
+    "template.json",
+    "README.md.tmpl",
+    "CLAUDE.md.tmpl",
+    "ENGINEERING-METHOD.md.tmpl",
+    "PROJECTS.yaml.tmpl",
+    "NOW.md.tmpl",
+    "MILESTONES.md.tmpl",
+    ".gitignore.tmpl",
+    "docs/runbook.md.tmpl",
+    "planning/backlog.jsonl.tmpl",
+    "planning/backlog.schema.json.tmpl",
+    "planning/dependencies.yaml.tmpl",
+    "workspaces/.gitkeep"
+  ],
+  "optional_files": [],
+  "smoke_test_command": [
+    "bash",
+    "-lc",
+    "set -e; for f in README.md CLAUDE.md ENGINEERING-METHOD.md PROJECTS.yaml NOW.md MILESTONES.md .gitignore docs/runbook.md planning/backlog.jsonl planning/backlog.schema.json planning/dependencies.yaml planning/decisions/.gitkeep handoffs/current/.gitkeep handoffs/archive/.gitkeep projects/.gitkeep workspaces/.gitkeep; do test -f \"$f\" || { echo \"missing: $f\"; exit 1; }; done; for bad in src pyproject.toml package.json pom.xml Dockerfile docker-compose.yml Jenkinsfile; do test ! -e \"$bad\" || { echo \"unexpected: $bad\"; exit 1; }; done; python3 -c 'import json; json.load(open(\"planning/backlog.schema.json\"))'; grep -q 'workspaces/[*]' .gitignore; grep -q '[!]workspaces/[.]gitkeep' .gitignore; python3 -c \"import pathlib,sys; tok=chr(123)*2; bad=[str(p) for p in pathlib.Path('.').rglob('*') if p.is_file() and '.git' not in p.parts and tok in p.read_text(errors='ignore')]; sys.exit('unresolved tokens: '+repr(bad) if bad else 0)\"; echo docs-control-plane smoke ok"
+  ]
+}
