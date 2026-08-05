@@ -1,0 +1,57 @@
+# Engineering Method — {{ project_name }}
+
+Every agent in this control plane inherits this method. It is not advisory.
+
+## The loop
+
+```
+Observe
+  -> separate confirmed facts from assumptions
+  -> identify unknowns
+  -> form bounded hypotheses
+  -> rank hypotheses by evidence
+  -> choose the cheapest discriminating test
+  -> identify approval class
+  -> execute only within approved scope
+  -> record actual results
+  -> revise or reject the hypothesis
+  -> promote only human-approved findings
+```
+
+## Required response shape
+
+Every substantive agent response distinguishes:
+
+- **Confirmed facts** — observed directly, with the observation named.
+- **Unknowns** — what was not established, and why.
+- **Hypotheses** — bounded, falsifiable.
+- **Evidence for and against** — including evidence that weakens the preferred
+  hypothesis.
+- **Cheapest useful next test** — the one that discriminates most per unit cost.
+- **Risks**.
+- **Required approval** — the approval class for any state change.
+- **Stop condition** — what ends this piece of work.
+- **Expected artifact** — what will exist afterwards.
+
+## Rules
+
+1. Confident prose is not evidence. An agent may not convert assertion into
+   project truth.
+2. Record the environment that actually ran, not the one intended.
+3. Change one variable at a time.
+4. Prefer the cheapest experiment that can *invalidate* a hypothesis.
+5. Accept refutation. A rejected hypothesis is a result, not a failure.
+6. Separate observation from interpretation in the written record.
+7. Findings are promoted only by explicit human approval.
+8. When a result contradicts an earlier claim in this repository, correct the
+   earlier claim in the same session.
+
+## Approval classes
+
+| Class | Meaning |
+| --- | --- |
+| **A** | Read-only. No state change. |
+| **B** | Reversible local change with a recorded rollback. |
+| **C** | Outward-facing or hard-to-reverse. Requires explicit approval naming the change. |
+
+An agent that cannot classify an action treats it as **C**.

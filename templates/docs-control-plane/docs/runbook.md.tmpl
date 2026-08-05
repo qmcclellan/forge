@@ -1,0 +1,49 @@
+# Runbook — {{ project_name }}
+
+Operational procedures for this control plane. This repository has no runtime, so
+every procedure here is about coordination, not operation.
+
+## Start a session
+
+Follow `workflows/session-start.md`. In short:
+
+1. Read `NOW.md`, then `PROJECTS.yaml`.
+2. Identify the owning project and read **its** instructions from its repository.
+3. Verify repository state before proposing changes.
+4. Select the narrowest access profile that permits the work.
+5. Declare the objective and the stop condition before acting.
+
+## Close a session
+
+Follow `workflows/session-close.md`. In short:
+
+1. Verify repository and runtime state.
+2. Write a compact immutable handoff into `handoffs/current/`.
+3. Record deferred ideas in `planning/backlog.jsonl`.
+4. Update `NOW.md` only if milestone state changed.
+5. State the exact next action.
+
+## Add a coordinated project
+
+1. Verify the repository, the authoritative remote and the default branch.
+2. Add a record to `PROJECTS.yaml` with `registration_status: verified` and
+   `last_verified_at` set to today.
+3. If any value is unconfirmed, register it as `unverified` and do not route work
+   to it.
+
+## Check out a coordinated repository
+
+Clone into `workspaces/<project_id>/`. Confirm afterwards that
+`git status` in this repository shows nothing new — `.gitignore` should hide the
+entire checkout. If it does not, stop and fix the ignore rule before continuing.
+
+## Rotate handoffs
+
+Move handoffs out of `handoffs/current/` into `handoffs/archive/` when their
+milestone closes. Never edit an archived handoff; supersede it with a new one.
+
+## Recover from a stale registry
+
+If a registry value proves wrong, correct `PROJECTS.yaml`, set
+`last_verified_at`, and record what was stale in `planning/decisions/`. A silent
+correction loses the evidence that the registry can drift.

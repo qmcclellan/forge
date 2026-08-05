@@ -1,0 +1,36 @@
+# NOW — {{ project_name }}
+
+The single active focus. Update this file **only** when milestone state changes.
+
+## Active objective
+
+TODO(operator): state the one objective currently being pursued, in one sentence.
+
+## Primary milestone
+
+TODO(operator): the milestone ID from `MILESTONES.md` this objective serves.
+
+## Owning project
+
+TODO(operator): the `project_id` from `PROJECTS.yaml` that owns this work, or
+`{{ project_slug }}` if the work is control-plane-internal.
+
+## Stop condition
+
+TODO(operator): what ends this objective. It must be observable, not a feeling.
+
+## Work in progress
+
+| Limit | Cap | Current |
+| --- | --- | --- |
+| Active portfolio milestones | 2 | 0 |
+| Active implementation milestones per project | 1 | 0 |
+| Active experiments per incident | 2 | 0 |
+
+Exceeding a WIP limit requires an explicit decision recorded in
+`planning/decisions/`.
+
+## Not now
+
+Work that is real but deliberately deferred lives in `planning/backlog.jsonl`
+under `next`, `later` or `evidence_needed`. It does not live here.

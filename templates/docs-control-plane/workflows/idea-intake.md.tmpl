@@ -1,0 +1,24 @@
+# Workflow — Idea Intake ({{ project_name }})
+
+Ideas arrive mid-session and are the most common source of pivots. Capture them
+without acting on them.
+
+1. **Do not act.** Note it and continue the current objective.
+2. **Check for duplicates** against existing backlog IDs.
+3. **Classify**:
+   - `now` — requires human approval; the Backlog Curator cannot self-promote.
+   - `next` — clear value, ready when capacity exists.
+   - `later` — real but not yet worth scheduling.
+   - `evidence_needed` — value depends on an unverified assumption.
+4. **State why** it matters, and for `evidence_needed`, the single observation
+   that would settle it.
+5. **Append** one line to `planning/backlog.jsonl`, validated against the schema.
+
+## The pivot test
+
+If acting on the idea now would exceed a WIP limit or change the active
+objective, it is a pivot. Record it; do not absorb it.
+
+## Expected artifact
+
+One appended backlog line with an ID, a bucket and a reason.

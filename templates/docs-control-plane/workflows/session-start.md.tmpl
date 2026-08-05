@@ -1,0 +1,26 @@
+# Workflow — Session Start ({{ project_name }})
+
+Do these in order. Do not skip step 4.
+
+1. **Read `NOW.md`.** It is the single active focus and outranks any handoff.
+2. **Read `PROJECTS.yaml`.** Identify candidate owning projects.
+3. **Identify the owning project** for the intended work.
+4. **Read that project's own instructions from its own repository** — its
+   `CLAUDE.md`, engineering standard, and any current-state document it declares.
+   A project's instructions outrank this control plane.
+5. **Verify repository state**: branch, HEAD SHA, working-tree cleanliness,
+   authoritative remote by name, divergence from that remote.
+6. **Select the access profile** — the narrowest that permits the work.
+7. **Declare the objective and the stop condition** before taking any action.
+
+## Refuse to start if
+
+- `NOW.md` and the intended work disagree and the conflict is unresolved.
+- The owning project is `registration_status: unverified`.
+- The working tree has unexplained modifications.
+- The objective has no observable stop condition.
+
+## Expected artifact
+
+A session opening statement: objective, owning project, branch and SHA, access
+profile, stop condition.
