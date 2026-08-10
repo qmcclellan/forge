@@ -6,10 +6,10 @@ Forge-generated projects can be built, tested, packaged, and published into the 
 
 Nexus runs on Friday:
 
-- Nexus UI: http://192.168.1.107:8082
-- Docker registry: 192.168.1.107:5000
-- PyPI hosted: http://192.168.1.107:8082/repository/pypi-hosted/
-- Raw hosted: http://192.168.1.107:8082/repository/raw-hosted/
+- Nexus UI: http://10.0.0.236:8082
+- Docker registry: 10.0.0.236:5000
+- PyPI hosted: http://10.0.0.236:8082/repository/pypi-hosted/
+- Raw hosted: http://10.0.0.236:8082/repository/raw-hosted/
 
 ## Validated repositories
 

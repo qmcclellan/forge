@@ -75,7 +75,7 @@ This uploads:
 
 Nexus path:
 
-    http://192.168.1.107:8082/repository/raw-hosted/forge/templates/python-worker/0.1.1/
+    http://10.0.0.236:8082/repository/raw-hosted/forge/templates/python-worker/0.1.1/
 
 ## List approved templates
 

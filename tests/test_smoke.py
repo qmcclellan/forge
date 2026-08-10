@@ -622,3 +622,68 @@ def test_doctor_json_flag_exists():
 
     assert args.command == "doctor"
     assert args.json is True
+
+
+# --- KS-0004 regression guards ---
+# The default Nexus raw URL must not drift back to a pre-migration address.
+# These assert the RESOLVED default rather than the source text, so they still
+# fail if the constant is correct but a subcommand hardcodes a stale default of
+# its own.
+
+PRE_MIGRATION_NEXUS_HOST = "192.168.1.107"
+CURRENT_NEXUS_RAW_URL = "http://10.0.0.236:8082/repository/raw-hosted"
+
+
+def test_default_nexus_raw_url_is_the_current_endpoint():
+    from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL
+
+    assert DEFAULT_NEXUS_RAW_URL == CURRENT_NEXUS_RAW_URL
+    assert PRE_MIGRATION_NEXUS_HOST not in DEFAULT_NEXUS_RAW_URL
+
+
+def test_default_nexus_raw_url_derives_a_valid_search_url():
+    """The default must stay parseable by the search-URL deriver.
+
+    nexus_search_assets_url() requires '/repository/' and splits the repository
+    name off the end. A default that is reachable but shaped wrong would break
+    list/info while looking correct.
+    """
+    from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, nexus_search_assets_url
+
+    assert (
+        nexus_search_assets_url(DEFAULT_NEXUS_RAW_URL)
+        == "http://10.0.0.236:8082/service/rest/v1/search/assets?repository=raw-hosted"
+    )
+
+
+def test_every_repository_url_default_resolves_to_the_current_endpoint():
+    """All four Nexus subcommands must resolve the same default.
+
+    publish/pull/list/info each declare their own --repository-url default.
+    This parses each one and checks the value argparse actually resolves, which
+    is exactly what a user gets when they pass no override.
+    """
+    from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL
+
+    parser = build_parser()
+    invocations = [
+        ["template", "list"],
+        ["template", "info", "python-worker", "--version", "0.1.1"],
+        ["template", "publish", "python-worker", "--version", "0.1.1"],
+        ["template", "pull", "python-worker", "--version", "0.1.1"],
+    ]
+
+    for argv in invocations:
+        args = parser.parse_args(argv)
+        assert args.repository_url == DEFAULT_NEXUS_RAW_URL, argv
+        assert PRE_MIGRATION_NEXUS_HOST not in args.repository_url, argv
+
+
+def test_repository_url_override_still_wins():
+    """Correcting the default must not weaken the explicit flag."""
+    parser = build_parser()
+    args = parser.parse_args(
+        ["template", "list", "--repository-url", "http://nexus.example/repository/raw-hosted"]
+    )
+
+    assert args.repository_url == "http://nexus.example/repository/raw-hosted"
