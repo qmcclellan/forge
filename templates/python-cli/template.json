@@ -27,8 +27,8 @@
     "Jenkinsfile.tmpl"
   ],
   "smoke_test_command": [
-    "python",
-    "-m",
-    "pytest"
+    "bash",
+    "-lc",
+    "set -e; test -f pyproject.toml; test -f src/python_cli_validate_smoke/cli.py; test -f tests/test_cli.py; PYTHONPATH=src python3 -c \"import sys; from python_cli_validate_smoke.cli import main; sys.exit(main(['run']))\"; echo python-cli smoke ok"
   ]
 }
