@@ -1,0 +1,52 @@
+# CI for Forge pull requests targeting main.
+#
+# Trigger: pull_request to main only. No main-branch push trigger, no deploy,
+# no image build, no secret-dependent step, no matrix, no caching, no lint,
+# coverage or release automation. This exists so a Forge pull request stops
+# reporting zero checks; it is not a CI platform.
+#
+# Python version justification: pyproject.toml requires >=3.10. 3.12 is pinned
+# here because it is the interpreter the known-good baseline was established on
+# (144 passed / 0 failed at c68021570d299e22c7ed94beb115c6f0d778a303).
+#
+# `python3` is invoked explicitly rather than a bare `python`. GitHub-hosted
+# runners provide both, but `forge doctor` only checks the version of the
+# interpreter already running Forge and never probes PATH for a `python`
+# executable -- so relying on the alias here would mean CI could not observe the
+# class of defect KS-0016 fixed, on hosts that do not provide it.
+#
+# pytest is installed directly rather than through project metadata: Forge's
+# pyproject declares `dependencies = []` and no test extra, and adding one just
+# to satisfy CI would put a CI requirement into production metadata.
+# `pip install -e .` is not needed -- pyproject sets pythonpath = ["."], so the
+# suite imports `forge` from the checkout root.
+
+name: tests
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  tests:
+    name: Forge suite — Python 3.12
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Record the interpreter actually used
+        run: |
+          python3 --version
+          python3 -c "import sys; print(sys.executable)"
+
+      - name: Install the test dependency
+        run: python3 -m pip install pytest
+
+      - name: Run the committed suite
+        run: python3 -m pytest -q
