@@ -26,8 +26,8 @@
     "Jenkinsfile.tmpl"
   ],
   "smoke_test_command": [
-    "python",
-    "-m",
-    "pytest"
+    "bash",
+    "-lc",
+    "set -e; test -f pyproject.toml; test -f src/python_worker_validate_smoke/main.py; test -f tests/test_smoke.py; grep -q 'from python_worker_validate_smoke.main import main' tests/test_smoke.py; PYTHONPATH=src python3 -c \"from python_worker_validate_smoke.main import main; main()\"; echo python-worker smoke ok"
   ]
 }

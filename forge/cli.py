@@ -3,6 +3,7 @@ import getpass
 import os
 import re
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -14,6 +15,13 @@ from forge.renderer import render_template_dir
 from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, package_template, publish_template, pull_template, list_nexus_templates, get_nexus_template_info, validate_template_structure
 
 DEFAULT_PROJECT_ROOT = Path("/srv/workspaces/projects/portfolio/generated-projects")
+
+# Fallback smoke command for a template that ships no smoke_test_command.
+# `sys.executable` rather than a bare "python": `forge doctor` only checks the
+# version of the interpreter already running Forge and never probes PATH for a
+# `python` executable, so a bare alias is a dependency Forge does not guarantee
+# and that Debian-derived hosts do not provide.
+DEFAULT_SMOKE_TEST_COMMAND = [sys.executable, "-m", "pytest"]
 
 DEFAULT_TEMPLATE_OUTPUT_DIRS = {
     "python-worker": DEFAULT_PROJECT_ROOT / "backend" / "python",
@@ -617,7 +625,7 @@ def main() -> None:
                 )
 
                 metadata = result.get("metadata", {})
-                smoke_command = metadata.get("smoke_test_command", ["python", "-m", "pytest"])
+                smoke_command = metadata.get("smoke_test_command", DEFAULT_SMOKE_TEST_COMMAND)
 
                 subprocess.run(
                     smoke_command,
