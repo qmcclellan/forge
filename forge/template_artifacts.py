@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 
-DEFAULT_NEXUS_RAW_URL = "http://192.168.1.107:8082/repository/raw-hosted"
+DEFAULT_NEXUS_RAW_URL = "http://10.0.0.236:8082/repository/raw-hosted"
 DEFAULT_NFS_BASE = "/mnt/veronica-nfs/devops/nexus/artifacts"
 DEFAULT_INGEST_DIR = "/mnt/veronica-nfs/ingest/devops-artifacts"
 DEFAULT_TEMPLATE_CACHE = "~/.forge/templates"
