@@ -988,3 +988,113 @@ def test_git_init_succeeds_when_only_half_an_identity_is_present(
     else:
         assert author == "A Person <a@example.com>"
         assert committer == f"{FALLBACK_COMMITTER_NAME} <{FALLBACK_COMMITTER_EMAIL}>"
+
+
+# --- KS-0015 regression: Forge's control file must not become project content ---
+# template.json describes the TEMPLATE -- its name, tags, required/optional files
+# and smoke command. It was being copied verbatim into every generated project.
+# The contract is about that specific control file, NOT about the .json
+# extension: legitimate JSON project content must still render normally.
+
+
+def test_generated_project_does_not_contain_the_template_control_file(tmp_path):
+    target = create_project(
+        name="control-file-worker",
+        template="python-worker",
+        output_dir=str(tmp_path),
+        description="A worker that must not carry template metadata.",
+    )
+
+    assert not (target / "template.json").exists(), "template control file leaked into the project"
+
+
+def test_generated_project_still_contains_its_expected_files(tmp_path):
+    """The exclusion must remove exactly one file and nothing else."""
+    target = create_project(
+        name="intact-worker",
+        template="python-worker",
+        output_dir=str(tmp_path),
+        description="A worker whose real files must survive.",
+        with_docker=True,
+        with_jenkins=True,
+    )
+
+    for expected in (
+        "README.md",
+        "pyproject.toml",
+        "src/intact_worker/main.py",
+        "src/intact_worker/__init__.py",
+        "tests/test_smoke.py",
+        "docs/runbook.md",
+        "Dockerfile",
+        "docker-compose.yml",
+        "Jenkinsfile",
+        ".forge/project.json",
+    ):
+        assert (target / expected).exists(), f"{expected} is missing from the generated project"
+
+
+def test_no_shipped_template_leaks_its_control_file(tmp_path):
+    """Every template, not just the one that happened to be inspected."""
+    for template_dir in _shipped_templates():
+        name = template_dir.name
+        target = create_project(
+            name=f"leakcheck-{name}",
+            template=name,
+            output_dir=str(tmp_path / name),
+            description="Leak check.",
+        )
+
+        assert not (target / "template.json").exists(), f"{name} leaked its control file"
+        # ...and the generation actually produced something.
+        assert any(target.rglob("*")), f"{name} produced an empty project"
+
+
+def test_legitimate_json_project_files_are_still_rendered(tmp_path):
+    """The contract is the control file, NOT the .json extension.
+
+    node-api ships package.json.tmpl and docs-control-plane ships
+    planning/backlog.schema.json.tmpl. Both must still arrive, rendered.
+    """
+    api = create_project(
+        name="json-api",
+        template="node-api",
+        output_dir=str(tmp_path / "api"),
+        description="An API whose package.json must survive.",
+    )
+    package_json = api / "package.json"
+    assert package_json.exists(), "package.json was not generated"
+    # Rendered, not copied raw: the project name substituted into the metadata.
+    assert json.loads(package_json.read_text())["name"] == "json-api"
+
+    docs = create_project(
+        name="json-docs",
+        template="docs-control-plane",
+        output_dir=str(tmp_path / "docs"),
+        description="A control plane whose schema must survive.",
+    )
+    schema = docs / "planning" / "backlog.schema.json"
+    assert schema.exists(), "backlog.schema.json was not generated"
+    json.loads(schema.read_text())
+
+
+def test_only_the_root_control_file_is_excluded(tmp_path):
+    """A nested file named template.json is project content and must render.
+
+    The exclusion matches an exact root-relative path, so a template that ships
+    its own template.json below the root is unaffected.
+    """
+    from forge.renderer import render_template_dir
+
+    template_dir = tmp_path / "fake-template"
+    (template_dir / "config").mkdir(parents=True)
+    (template_dir / "template.json").write_text('{"name": "fake-template"}')
+    (template_dir / "config" / "template.json").write_text('{"kept": "{{ project_name }}"}')
+
+    target = tmp_path / "out"
+    render_template_dir(template_dir, target, {"project_name": "Rendered"})
+
+    assert not (target / "template.json").exists(), "root control file should be excluded"
+    nested = target / "config" / "template.json"
+    assert nested.exists(), "a nested template.json is project content and must be kept"
+    assert json.loads(nested.read_text())["kept"] == "Rendered"

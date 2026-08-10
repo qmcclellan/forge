@@ -1,6 +1,17 @@
 from pathlib import Path
 
 
+# Forge's own control file, read from the template directory to describe the
+# template -- its name, tags, required/optional files and smoke command. It
+# describes the TEMPLATE, not the project, so it must not be delivered as
+# generated project content.
+#
+# Matched as an exact root-relative path rather than by filename, so a template
+# that legitimately ships its own nested file called template.json -- as project
+# content, at some path below the root -- still renders normally.
+TEMPLATE_CONTROL_FILE = Path("template.json")
+
+
 def render_text(template: str, values: dict[str, str]) -> str:
     rendered = template
     for key, value in values.items():
@@ -18,6 +29,9 @@ def render_template_dir(
 
     for source in template_dir.rglob("*"):
         relative = source.relative_to(template_dir)
+
+        if source.is_file() and relative == TEMPLATE_CONTROL_FILE:
+            continue
 
         if source.is_file() and relative.name in {"Dockerfile.tmpl", "docker-compose.yml.tmpl", "Jenkinsfile.tmpl"}:
             if relative.name not in enabled_optional_files:
