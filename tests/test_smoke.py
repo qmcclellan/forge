@@ -915,6 +915,10 @@ def test_scaffold_commit_command_carries_no_override_when_identity_exists(
     repo.mkdir()
     subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
 
+    # BOTH halves, because a commit needs an author and a committer and they
+    # resolve independently. Supplying only one is not a usable identity.
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Real Person")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "real@example.com")
     monkeypatch.setenv("GIT_COMMITTER_NAME", "Real Person")
     monkeypatch.setenv("GIT_COMMITTER_EMAIL", "real@example.com")
 
@@ -939,3 +943,48 @@ def test_scaffold_commit_command_adds_the_fallback_when_identity_is_absent(
     assert "-c" in command
     assert f"user.email={FALLBACK_COMMITTER_EMAIL}" in command
     assert command[-3:] == ["commit", "-m", "Initial scaffold from Forge"]
+
+
+@pytest.mark.parametrize(
+    "half",
+    [
+        {"GIT_COMMITTER_NAME": "C Person", "GIT_COMMITTER_EMAIL": "c@example.com"},
+        {"GIT_AUTHOR_NAME": "A Person", "GIT_AUTHOR_EMAIL": "a@example.com"},
+    ],
+    ids=["committer-only", "author-only"],
+)
+def test_git_init_succeeds_when_only_half_an_identity_is_present(
+    tmp_path, no_git_identity, monkeypatch, half
+):
+    """Author and committer identities resolve independently.
+
+    An environment supplying only one half resolves that half and nothing else,
+    so a plain commit still fails with exit 128. Checking a single side would
+    report a usable identity that does not permit a commit.
+    """
+    from forge.git_ops import FALLBACK_COMMITTER_EMAIL, FALLBACK_COMMITTER_NAME
+
+    for key, value in half.items():
+        monkeypatch.setenv(key, value)
+
+    target = create_project(
+        name="half-identity-worker",
+        template="python-worker",
+        output_dir=str(tmp_path / "out"),
+        description="A worker created with only half an identity.",
+        git_init=True,
+    )
+
+    log = _git(target, "log", "-1", "--format=%an <%ae>|%cn <%ce>")
+    assert log.returncode == 0, f"no commit was created: {log.stderr}"
+
+    author, committer = log.stdout.strip().split("|")
+
+    # The half the caller supplied is preserved verbatim; Forge fills only the
+    # other half, so the commit can be created at all.
+    if "GIT_COMMITTER_EMAIL" in half:
+        assert committer == "C Person <c@example.com>"
+        assert author == f"{FALLBACK_COMMITTER_NAME} <{FALLBACK_COMMITTER_EMAIL}>"
+    else:
+        assert author == "A Person <a@example.com>"
+        assert committer == f"{FALLBACK_COMMITTER_NAME} <{FALLBACK_COMMITTER_EMAIL}>"

@@ -25,21 +25,32 @@ def run_git_command(project_dir: Path, command: list[str]) -> None:
 
 
 def has_usable_git_identity(project_dir: Path) -> bool:
-    """True when git can already resolve a committer identity here.
+    """True when git can already resolve BOTH identities a commit requires.
 
-    `git var GIT_COMMITTER_IDENT` is git's own resolution of the identity it
-    would use, so it accounts for system, global, repository and environment
-    sources without Forge having to reimplement that precedence. It exits
-    non-zero precisely when git would refuse to commit.
+    `git var GIT_AUTHOR_IDENT` / `GIT_COMMITTER_IDENT` are git's own resolution
+    of the identities it would use, so system, global, repository and
+    environment sources are all honoured without Forge reimplementing that
+    precedence. Each exits non-zero precisely when git would refuse to commit
+    for want of that half.
+
+    BOTH are checked because they resolve independently. An environment that
+    sets only GIT_COMMITTER_NAME/EMAIL resolves a committer but no author, and a
+    plain commit there still fails with exit 128 -- so checking the committer
+    alone would report a usable identity that does not, in fact, permit a
+    commit.
     """
-    result = subprocess.run(
-        ["git", "var", "GIT_COMMITTER_IDENT"],
-        cwd=project_dir,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    return result.returncode == 0
+    for variable in ("GIT_AUTHOR_IDENT", "GIT_COMMITTER_IDENT"):
+        result = subprocess.run(
+            ["git", "var", variable],
+            cwd=project_dir,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        if result.returncode != 0:
+            return False
+
+    return True
 
 
 def scaffold_commit_command(project_dir: Path) -> list[str]:
