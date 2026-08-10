@@ -4,6 +4,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from forge.cli import build_parser, create_project
 
 
@@ -781,3 +783,208 @@ def test_generated_python_projects_still_declare_pytest_for_developers():
     for template in ("python-worker", "python-cli"):
         pyproject = (_TEMPLATES_DIR / template / "pyproject.toml.tmpl").read_text()
         assert "pytest" in pyproject, f"{template} no longer declares pytest for developers"
+
+
+# --- KS-0043 regression: git init must not require an ambient Git identity ---
+# A fresh container, CI runner or new workstation has no `git config user.email`.
+# Before this fix `forge new --git-init` died on `git commit` with exit 128.
+# `no_git_identity` reproduces that: an empty HOME, no system config, and a
+# global config pointed at /dev/null.
+
+
+@pytest.fixture
+def no_git_identity(tmp_path, monkeypatch):
+    empty_home = tmp_path / "empty-home"
+    empty_home.mkdir()
+    monkeypatch.setenv("HOME", str(empty_home))
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", str(tmp_path / "absent-gitconfig"))
+    for leaked in (
+        "GIT_AUTHOR_NAME",
+        "GIT_AUTHOR_EMAIL",
+        "GIT_COMMITTER_NAME",
+        "GIT_COMMITTER_EMAIL",
+    ):
+        monkeypatch.delenv(leaked, raising=False)
+    return empty_home
+
+
+def _git(project_dir, *args):
+    return subprocess.run(
+        ["git", *args],
+        cwd=project_dir,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+
+def test_git_init_succeeds_without_any_ambient_identity(tmp_path, no_git_identity):
+    """The defect itself: this raised CalledProcessError, exit 128, before the fix."""
+    target = create_project(
+        name="identityless-worker",
+        template="python-worker",
+        output_dir=str(tmp_path / "out"),
+        description="A worker created where git has no identity.",
+        git_init=True,
+    )
+
+    assert (target / ".git").exists()
+
+    log = _git(target, "log", "--oneline")
+    assert log.returncode == 0, f"no commit was created: {log.stderr}"
+    assert "Initial scaffold from Forge" in log.stdout
+
+
+def test_fallback_identity_is_used_only_when_none_is_available(tmp_path, no_git_identity):
+    from forge.git_ops import FALLBACK_COMMITTER_EMAIL, FALLBACK_COMMITTER_NAME
+
+    target = create_project(
+        name="fallback-worker",
+        template="python-worker",
+        output_dir=str(tmp_path / "out"),
+        description="A worker created where git has no identity.",
+        git_init=True,
+    )
+
+    ident = _git(target, "log", "-1", "--format=%an <%ae>|%cn <%ce>")
+    author, committer = ident.stdout.strip().split("|")
+
+    expected = f"{FALLBACK_COMMITTER_NAME} <{FALLBACK_COMMITTER_EMAIL}>"
+    assert author == expected
+    assert committer == expected
+    # RFC 2606 reserves .invalid; the fallback must never look contactable.
+    assert FALLBACK_COMMITTER_EMAIL.endswith(".invalid")
+
+
+def test_git_init_writes_no_gitconfig_anywhere(tmp_path, no_git_identity):
+    """Forge must supply its identity per-invocation, never by writing config."""
+    target = create_project(
+        name="noconfig-worker",
+        template="python-worker",
+        output_dir=str(tmp_path / "out"),
+        description="A worker created where git has no identity.",
+        git_init=True,
+    )
+
+    # Nothing was written into the isolated HOME, and no global config was created.
+    assert list(no_git_identity.rglob("*")) == []
+    assert not (tmp_path / "absent-gitconfig").exists()
+
+    # And no user.* landed in the generated repository's own config.
+    local = _git(target, "config", "--local", "--get-regexp", "^user\\.")
+    assert local.stdout.strip() == ""
+
+
+def test_explicit_user_identity_still_wins(tmp_path, no_git_identity, monkeypatch):
+    """A caller-provided identity must not be overridden by the fallback."""
+    from forge.git_ops import FALLBACK_COMMITTER_EMAIL
+
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Real Person")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "real@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Real Person")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "real@example.com")
+
+    target = create_project(
+        name="explicit-worker",
+        template="python-worker",
+        output_dir=str(tmp_path / "out"),
+        description="A worker created with an explicit identity.",
+        git_init=True,
+    )
+
+    ident = _git(target, "log", "-1", "--format=%an <%ae>|%cn <%ce>")
+    author, committer = ident.stdout.strip().split("|")
+
+    assert author == "Real Person <real@example.com>"
+    assert committer == "Real Person <real@example.com>"
+    assert FALLBACK_COMMITTER_EMAIL not in ident.stdout
+
+
+def test_scaffold_commit_command_carries_no_override_when_identity_exists(
+    tmp_path, no_git_identity, monkeypatch
+):
+    """With an identity available the commit argv must be plain, not `-c` laden.
+
+    The identity is supplied explicitly rather than inherited, so this asserts
+    the same thing whether or not the machine running the suite has one.
+    """
+    from forge.git_ops import scaffold_commit_command
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+
+    # BOTH halves, because a commit needs an author and a committer and they
+    # resolve independently. Supplying only one is not a usable identity.
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Real Person")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "real@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Real Person")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "real@example.com")
+
+    command = scaffold_commit_command(repo)
+
+    assert command[:2] == ["git", "commit"], command
+    assert "-c" not in command
+
+
+def test_scaffold_commit_command_adds_the_fallback_when_identity_is_absent(
+    tmp_path, no_git_identity
+):
+    """The mirror case, so the branch is pinned in both directions."""
+    from forge.git_ops import FALLBACK_COMMITTER_EMAIL, scaffold_commit_command
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+
+    command = scaffold_commit_command(repo)
+
+    assert "-c" in command
+    assert f"user.email={FALLBACK_COMMITTER_EMAIL}" in command
+    assert command[-3:] == ["commit", "-m", "Initial scaffold from Forge"]
+
+
+@pytest.mark.parametrize(
+    "half",
+    [
+        {"GIT_COMMITTER_NAME": "C Person", "GIT_COMMITTER_EMAIL": "c@example.com"},
+        {"GIT_AUTHOR_NAME": "A Person", "GIT_AUTHOR_EMAIL": "a@example.com"},
+    ],
+    ids=["committer-only", "author-only"],
+)
+def test_git_init_succeeds_when_only_half_an_identity_is_present(
+    tmp_path, no_git_identity, monkeypatch, half
+):
+    """Author and committer identities resolve independently.
+
+    An environment supplying only one half resolves that half and nothing else,
+    so a plain commit still fails with exit 128. Checking a single side would
+    report a usable identity that does not permit a commit.
+    """
+    from forge.git_ops import FALLBACK_COMMITTER_EMAIL, FALLBACK_COMMITTER_NAME
+
+    for key, value in half.items():
+        monkeypatch.setenv(key, value)
+
+    target = create_project(
+        name="half-identity-worker",
+        template="python-worker",
+        output_dir=str(tmp_path / "out"),
+        description="A worker created with only half an identity.",
+        git_init=True,
+    )
+
+    log = _git(target, "log", "-1", "--format=%an <%ae>|%cn <%ce>")
+    assert log.returncode == 0, f"no commit was created: {log.stderr}"
+
+    author, committer = log.stdout.strip().split("|")
+
+    # The half the caller supplied is preserved verbatim; Forge fills only the
+    # other half, so the commit can be created at all.
+    if "GIT_COMMITTER_EMAIL" in half:
+        assert committer == "C Person <c@example.com>"
+        assert author == f"{FALLBACK_COMMITTER_NAME} <{FALLBACK_COMMITTER_EMAIL}>"
+    else:
+        assert author == "A Person <a@example.com>"
+        assert committer == f"{FALLBACK_COMMITTER_NAME} <{FALLBACK_COMMITTER_EMAIL}>"
