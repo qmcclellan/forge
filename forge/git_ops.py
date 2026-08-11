@@ -13,15 +13,60 @@ FALLBACK_COMMITTER_NAME = "Forge"
 FALLBACK_COMMITTER_EMAIL = "forge@forge.invalid"
 
 
+class GitCommandError(subprocess.CalledProcessError):
+    """A failed git command that says what git actually said.
+
+    KS-0044: `subprocess.run(..., check=True)` raises `CalledProcessError`, whose
+    message is only "Command '[...]' returned non-zero exit status N." The
+    captured stderr lives on the exception but appears nowhere a caller or log
+    ever reads, so the real reason -- "Author identity unknown", "remote origin
+    already exists" -- was discarded at exactly the moment it was needed.
+
+    Subclassing rather than replacing keeps `returncode`, `cmd`, `output` and
+    `stderr` where every existing caller and `except subprocess.CalledProcessError`
+    already expects them. Only the rendered message changes.
+    """
+
+    def __str__(self) -> str:
+        base = super().__str__()
+        detail = _git_diagnostic(self.stderr, self.stdout)
+        return f"{base}\n{detail}" if detail else base
+
+
+def _git_diagnostic(stderr: str | None, stdout: str | None) -> str:
+    """Git's own words for a failure, preferring stderr and falling back to stdout.
+
+    Most failures land on stderr. Some do not: `git commit` with nothing staged
+    exits 1 and writes "nothing to commit" to STDOUT with an empty stderr, so a
+    stderr-only fix would still lose the message for that case.
+    """
+    for stream in (stderr, stdout):
+        if stream and stream.strip():
+            return stream.strip()
+    return ""
+
+
 def run_git_command(project_dir: Path, command: list[str]) -> None:
-    subprocess.run(
+    result = subprocess.run(
         command,
         cwd=project_dir,
-        check=True,
+        check=False,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
+
+    # check=False plus an explicit raise, rather than check=True, purely so the
+    # raised exception can carry git's message. The failure behaviour is
+    # otherwise identical: a non-zero return code still raises, and the type is
+    # still a CalledProcessError.
+    if result.returncode != 0:
+        raise GitCommandError(
+            returncode=result.returncode,
+            cmd=command,
+            output=result.stdout,
+            stderr=result.stderr,
+        )
 
 
 def has_usable_git_identity(project_dir: Path) -> bool:
