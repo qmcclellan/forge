@@ -170,8 +170,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     new_parser.add_argument(
         "--username",
-        default=os.environ.get("NEXUS_USERNAME", "admin"),
-        help="Nexus username for Nexus-backed templates.",
+        default=os.environ.get("NEXUS_USERNAME"),
+        help="Nexus username for Nexus-backed templates. Omit for an anonymous read.",
     )
     new_parser.add_argument(
         "--password",
@@ -261,8 +261,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     pull_parser.add_argument(
         "--username",
-        default=os.environ.get("NEXUS_USERNAME", "admin"),
-        help="Nexus username. Defaults to NEXUS_USERNAME or admin.",
+        default=os.environ.get("NEXUS_USERNAME"),
+        help="Nexus username. Defaults to NEXUS_USERNAME; omit for an anonymous read.",
     )
     pull_parser.add_argument(
         "--password",
@@ -292,8 +292,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     list_parser.add_argument(
         "--username",
-        default=os.environ.get("NEXUS_USERNAME", "admin"),
-        help="Nexus username. Defaults to NEXUS_USERNAME or admin.",
+        default=os.environ.get("NEXUS_USERNAME"),
+        help="Nexus username. Defaults to NEXUS_USERNAME; omit for an anonymous read.",
     )
     list_parser.add_argument(
         "--password",
@@ -329,8 +329,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     info_parser.add_argument(
         "--username",
-        default=os.environ.get("NEXUS_USERNAME", "admin"),
-        help="Nexus username. Defaults to NEXUS_USERNAME or admin.",
+        default=os.environ.get("NEXUS_USERNAME"),
+        help="Nexus username. Defaults to NEXUS_USERNAME; omit for an anonymous read.",
     )
     info_parser.add_argument(
         "--password",
@@ -451,6 +451,57 @@ def create_project(
     return target
 
 
+
+def resolve_nexus_credentials(
+    username: str | None,
+    password: str | None,
+    *,
+    require_auth: bool,
+    isatty=None,
+) -> tuple[str | None, str | None]:
+    """Resolve Nexus credentials without ever blocking a non-interactive run.
+
+    Precedence, highest first:
+
+    1. credentials supplied explicitly on the command line;
+    2. credentials from NEXUS_USERNAME / NEXUS_PASSWORD, which argparse has
+       already folded into the same arguments;
+    3. for a read the repository serves anonymously, no credentials at all;
+    4. an interactive prompt, and ONLY when the operation genuinely needs
+       authentication and stdin is a terminal.
+
+    `require_auth` is what separates writes from reads. Publishing uploads
+    artifacts and cannot proceed anonymously, so a missing password there is an
+    error. Reads fall back to anonymous access, which the library layer has
+    always supported by accepting `username=None` and omitting the
+    Authorization header.
+
+    KS-0050: the previous behaviour called getpass unconditionally, so a read in
+    CI or any script died inside the prompt before a request was ever made, and
+    the library's anonymous path was unreachable because --username defaulted to
+    a synthetic "admin". Prompting is now the last resort and is TTY-guarded.
+    """
+    if password:
+        return username, password
+
+    if not require_auth and not username:
+        # Anonymous read: passing None for both is what makes the library omit
+        # the Authorization header entirely.
+        return None, None
+
+    if isatty is None:
+        isatty = sys.stdin.isatty
+
+    if not isatty():
+        hint = "" if require_auth else " Omit --username to read anonymously."
+        raise SystemExit(
+            "Nexus credentials are required for this operation but none were "
+            "supplied, and stdin is not a terminal so there is nothing to "
+            "prompt. Pass --password, or set NEXUS_PASSWORD." + hint
+        )
+
+    return username, getpass.getpass(f"Nexus password for {username}: ")
+
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
@@ -466,11 +517,13 @@ def main() -> None:
             if not args.template_version:
                 raise ValueError("--template-version is required when --template-source nexus is selected")
 
-            password = args.password or getpass.getpass(f"Nexus password for {args.username}: ")
+            username, password = resolve_nexus_credentials(
+                args.username, args.password, require_auth=False
+            )
             pulled = pull_template(
                 template=args.template,
                 version=args.template_version,
-                username=args.username,
+                username=username,
                 password=password,
                 repository_url=args.repository_url,
                 cache_dir=args.template_cache_dir,
@@ -509,11 +562,13 @@ def main() -> None:
         return
 
     if args.command == "template" and args.template_command == "publish":
-        password = args.password or getpass.getpass(f"Nexus password for {args.username}: ")
+        username, password = resolve_nexus_credentials(
+            args.username, args.password, require_auth=True
+        )
         result = publish_template(
             template=args.template,
             version=args.version,
-            username=args.username,
+            username=username,
             password=password,
             repository_url=args.repository_url,
             output_dir=args.output_dir,
@@ -532,11 +587,13 @@ def main() -> None:
         return
 
     if args.command == "template" and args.template_command == "pull":
-        password = args.password or getpass.getpass(f"Nexus password for {args.username}: ")
+        username, password = resolve_nexus_credentials(
+            args.username, args.password, require_auth=False
+        )
         result = pull_template(
             template=args.template,
             version=args.version,
-            username=args.username,
+            username=username,
             password=password,
             repository_url=args.repository_url,
             cache_dir=args.cache_dir,
@@ -549,10 +606,12 @@ def main() -> None:
         return
 
     if args.command == "template" and args.template_command == "list":
-        password = args.password or getpass.getpass(f"Nexus password for {args.username}: ")
+        username, password = resolve_nexus_credentials(
+            args.username, args.password, require_auth=False
+        )
         templates = list_nexus_templates(
             repository_url=args.repository_url,
-            username=args.username,
+            username=username,
             password=password,
             cache_dir=args.cache_dir,
         )
@@ -574,12 +633,14 @@ def main() -> None:
         return
 
     if args.command == "template" and args.template_command == "info":
-        password = args.password or getpass.getpass(f"Nexus password for {args.username}: ")
+        username, password = resolve_nexus_credentials(
+            args.username, args.password, require_auth=False
+        )
         item = get_nexus_template_info(
             template=args.template,
             version=args.version,
             repository_url=args.repository_url,
-            username=args.username,
+            username=username,
             password=password,
             cache_dir=args.cache_dir,
         )
