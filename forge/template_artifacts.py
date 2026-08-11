@@ -2,6 +2,7 @@ import base64
 import gzip
 import hashlib
 import json
+import os
 import shutil
 import tarfile
 import urllib.request
@@ -10,9 +11,25 @@ from pathlib import Path
 
 
 DEFAULT_NEXUS_RAW_URL = "http://10.0.0.236:8082/repository/raw-hosted"
-DEFAULT_NFS_BASE = "/mnt/veronica-nfs/devops/nexus/artifacts"
-DEFAULT_INGEST_DIR = "/mnt/veronica-nfs/ingest/devops-artifacts"
+# KS-0005: the retired "veronica" mount was a duplicate second mount of the
+# same export now served at /starkgrid. The storage was never lost; only these
+# defaults still named the old layout. Overridable by environment so a host
+# with a different mount point needs no code change.
+DEFAULT_NFS_BASE = "/starkgrid/devops/nexus/artifacts"
+DEFAULT_INGEST_DIR = "/starkgrid/ingest/devops-artifacts"
+NFS_BASE_ENV = "FORGE_NFS_BASE"
+INGEST_DIR_ENV = "FORGE_INGEST_DIR"
 DEFAULT_TEMPLATE_CACHE = "~/.forge/templates"
+
+
+def resolve_nfs_base(explicit: str | None = None) -> str:
+    """Explicit argument wins, then environment, then the packaged default."""
+    return explicit or os.environ.get(NFS_BASE_ENV) or DEFAULT_NFS_BASE
+
+
+def resolve_ingest_dir(explicit: str | None = None) -> str:
+    """Explicit argument wins, then environment, then the packaged default."""
+    return explicit or os.environ.get(INGEST_DIR_ENV) or DEFAULT_INGEST_DIR
 
 
 def sha256_file(path: Path) -> str:
@@ -166,9 +183,12 @@ def publish_template(
     password: str,
     repository_url: str = DEFAULT_NEXUS_RAW_URL,
     output_dir: str = "dist/templates",
-    nfs_base: str = DEFAULT_NFS_BASE,
-    ingest_dir: str = DEFAULT_INGEST_DIR,
+    nfs_base: str | None = None,
+    ingest_dir: str | None = None,
 ) -> dict[str, str]:
+    nfs_base = resolve_nfs_base(nfs_base)
+    ingest_dir = resolve_ingest_dir(ingest_dir)
+
     archive_path, manifest_path = package_template(
         template=template,
         version=version,
