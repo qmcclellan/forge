@@ -1,0 +1,20 @@
+{
+  "adapter": "starkgrid",
+  "incidentCount": 0,
+  "incidentEvidenceFile": "incident-evidence.json",
+  "incidentSchemaVersion": "1.0",
+  "normalizedJsonl": "normalized.jsonl",
+  "runId": "forge-template-validate-c2df5d75e53da812",
+  "sourceSlug": "forge-template-validate-c2df5d75e53da812",
+  "summaryJson": "summary.json",
+  "templates": [
+    "docs-control-plane",
+    "java-batch-job",
+    "java-spring-service",
+    "node-api",
+    "node-dashboard",
+    "python-cli",
+    "python-worker"
+  ],
+  "tool": "forge"
+}

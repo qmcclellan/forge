@@ -1,0 +1,12 @@
+{
+  "incidents": [],
+  "metrics": {
+    "finalKafkaLag": null,
+    "manifestCollisionCount": null,
+    "templatesValidated": 7,
+    "templatesWithErrors": 0,
+    "templatesWithWarnings": 0
+  },
+  "runId": "forge-template-validate-c2df5d75e53da812",
+  "schemaVersion": "1.0"
+}
