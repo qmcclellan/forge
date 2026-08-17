@@ -13,6 +13,7 @@ from forge.project_metadata import write_project_metadata
 from forge.project_inspector import inspect_project_json
 from forge.renderer import render_template_dir
 from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, package_template, publish_template, pull_template, list_nexus_templates, get_nexus_template_info, validate_template_structure
+from forge.coder_target import UnsupportedForgeSource, write_coder_target
 
 DEFAULT_PROJECT_ROOT = Path("/srv/workspaces/projects/portfolio/generated-projects")
 
@@ -357,6 +358,40 @@ def build_parser() -> argparse.ArgumentParser:
         "--skip-smoke",
         action="store_true",
         help="Only validate template structure; do not render and test a temp project.",
+    )
+
+    convert_coder_parser = template_subparsers.add_parser(
+        "convert-coder",
+        help="KS-0006: convert a bounded, frontend-classified node-<N> template "
+             "(the node-dashboard profile) into a StarkGrid "
+             "coder-terraform-target-contract-v1-shaped Coder/Terraform target. "
+             "Bounded conversion, not universal Forge-to-Coder translation -- "
+             "see forge.coder_target's module docstring.",
+    )
+    convert_coder_parser.add_argument("template", help="Template name to convert.")
+    convert_coder_parser.add_argument(
+        "--template-dir",
+        default=None,
+        help="Optional explicit template directory to convert.",
+    )
+    convert_coder_parser.add_argument(
+        "--output-dir",
+        required=True,
+        help="Directory to write main.tf and FORGE_SOURCE.md to.",
+    )
+    convert_coder_parser.add_argument(
+        "--forge-sha",
+        required=True,
+        help="Authoritative Forge repository SHA this conversion is performed "
+             "against. Caller-supplied, never inferred from local git state, "
+             "so the same inputs always produce the same output.",
+    )
+    convert_coder_parser.add_argument(
+        "--generated-at",
+        required=True,
+        help="Generation date/timestamp to record in FORGE_SOURCE.md. "
+             "Caller-supplied, never the wall clock, for the same reason as "
+             "--forge-sha.",
     )
 
     return parser
@@ -734,6 +769,29 @@ def main() -> None:
                 print(f"Generated smoke project valid: {target}")
 
         print(f"Template validation passed: {args.template}")
+        return
+
+    if args.command == "template" and args.template_command == "convert-coder":
+        template_dir = resolve_template_dir(args.template, args.template_dir)
+        try:
+            result = write_coder_target(
+                template_dir=template_dir,
+                output_dir=Path(args.output_dir),
+                forge_sha=args.forge_sha,
+                generated_at=args.generated_at,
+            )
+        except UnsupportedForgeSource as exc:
+            print(f"REFUSED: {exc}")
+            raise SystemExit(1)
+
+        print(f"Converted {args.template} -> {args.output_dir}")
+        print(f"  main.tf ({len(result['main_tf'].splitlines())} lines)")
+        print("  FORGE_SOURCE.md")
+        print(
+            "Structural conformance to coder-terraform-target-contract-v1.md is "
+            "NOT checked by this command -- run StarkGrid's own "
+            "ops/coder/validate-target-contract.sh against --output-dir."
+        )
         return
 
     parser.print_help()
