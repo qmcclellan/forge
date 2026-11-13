@@ -11,6 +11,7 @@ from forge.doctor import doctor_json, doctor_text
 from forge.git_ops import add_remote_origin, run_git_init
 from forge.project_metadata import write_project_metadata
 from forge.project_inspector import inspect_project_json
+from forge.project_availability import check_project_availability_json
 from forge.renderer import render_template_dir
 from forge.template_artifacts import DEFAULT_NEXUS_RAW_URL, package_template, publish_template, pull_template, list_nexus_templates, get_nexus_template_info, validate_template_structure
 from forge.coder_target import UnsupportedForgeSource, write_coder_target
@@ -191,6 +192,30 @@ def build_parser() -> argparse.ArgumentParser:
         help="Inspect a generated project for Forge receipts and common project files.",
     )
     inspect_parser.add_argument("path", help="Project path to inspect.")
+
+    check_availability_parser = project_subparsers.add_parser(
+        "check-availability",
+        help=(
+            "Read-only preflight: check whether a proposed project name collides "
+            "with an existing local scaffold or Gitea repository. Creates nothing."
+        ),
+    )
+    check_availability_parser.add_argument("name", help="Proposed project name.")
+    check_availability_parser.add_argument(
+        "--target-workspace",
+        required=True,
+        help="Directory the project's slug-named folder would be created under.",
+    )
+    check_availability_parser.add_argument(
+        "--gitea-owner",
+        required=True,
+        help="Gitea user or organization namespace the repository would be created under.",
+    )
+    check_availability_parser.add_argument(
+        "--template",
+        default=None,
+        help="Optional proposed template name, recorded for provenance only.",
+    )
 
     template_parser = subparsers.add_parser(
         "template",
@@ -615,6 +640,17 @@ def main() -> None:
 
     if args.command == "project" and args.project_command == "inspect":
         print(inspect_project_json(args.path))
+        return
+
+    if args.command == "project" and args.project_command == "check-availability":
+        print(
+            check_project_availability_json(
+                args.name,
+                args.target_workspace,
+                args.gitea_owner,
+                args.template,
+            )
+        )
         return
 
     if args.command == "template" and args.template_command == "package":
