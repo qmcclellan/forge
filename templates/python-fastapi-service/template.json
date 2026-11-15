@@ -1,0 +1,39 @@
+{
+  "name": "python-fastapi-service",
+  "language": "python",
+  "runtime": "python-3.12",
+  "description": "A minimal FastAPI HTTP service scaffold with a health endpoint, pytest + TestClient tests, hash-locked dependencies, optional Docker support, and optional Jenkins pipeline support.",
+  "tags": [
+    "python",
+    "fastapi",
+    "http",
+    "api",
+    "service",
+    "pytest",
+    "docker",
+    "jenkins",
+    "portfolio"
+  ],
+  "recommended_use": "Use for HTTP services and adapters that need a real ASGI web framework -- for example an OIDC/identity adapter -- where python-worker's minimal, quickly-returning main() is not a fit.",
+  "required_files": [
+    "template.json",
+    "README.md.tmpl",
+    "pyproject.toml.tmpl",
+    "requirements.lock.tmpl",
+    "requirements-dev.lock.tmpl",
+    ".env.example.tmpl",
+    "src/__package__/__init__.py.tmpl",
+    "src/__package__/main.py.tmpl",
+    "tests/test_smoke.py.tmpl"
+  ],
+  "optional_files": [
+    "Dockerfile.tmpl",
+    "docker-compose.yml.tmpl",
+    "Jenkinsfile.tmpl"
+  ],
+  "smoke_test_command": [
+    "bash",
+    "-lc",
+    "set -e; test -f pyproject.toml; test -f requirements.lock; test -f requirements-dev.lock; test -f .env.example; test -f src/python_fastapi_service_validate_smoke/main.py; test -f tests/test_smoke.py; grep -q 'app = FastAPI(' src/python_fastapi_service_validate_smoke/main.py; grep -q '/healthz' src/python_fastapi_service_validate_smoke/main.py; grep -q 'from python_fastapi_service_validate_smoke.main import app' tests/test_smoke.py; grep -q 'TestClient' tests/test_smoke.py; echo python-fastapi-service smoke ok"
+  ]
+}

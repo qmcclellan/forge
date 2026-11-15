@@ -4,8 +4,8 @@
   "incidentEvidenceFile": "incident-evidence.json",
   "incidentSchemaVersion": "1.0",
   "normalizedJsonl": "normalized.jsonl",
-  "runId": "forge-template-validate-c2df5d75e53da812",
-  "sourceSlug": "forge-template-validate-c2df5d75e53da812",
+  "runId": "forge-template-validate-2e43fd00ebcd94fb",
+  "sourceSlug": "forge-template-validate-2e43fd00ebcd94fb",
   "summaryJson": "summary.json",
   "templates": [
     "docs-control-plane",
@@ -14,6 +14,7 @@
     "node-api",
     "node-dashboard",
     "python-cli",
+    "python-fastapi-service",
     "python-worker"
   ],
   "tool": "forge"
